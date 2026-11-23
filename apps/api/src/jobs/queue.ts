@@ -18,7 +18,9 @@ export async function enqueue(
     .values({
       type,
       payload: JSON.stringify(payload),
-      run_after: opts.runAfter ?? new Date(),
+      // Default to the database clock: claim() compares against CURRENT_TIMESTAMP, and a
+      // JS Date can be ahead of it (TIMESTAMP rounds fractional seconds; app/DB clocks differ).
+      run_after: opts.runAfter ?? sql<Date>`CURRENT_TIMESTAMP`,
       max_attempts: opts.maxAttempts ?? 5,
       idempotency_key: opts.idempotencyKey ?? null,
       status: 'pending',

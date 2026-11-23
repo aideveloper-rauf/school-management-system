@@ -12,7 +12,8 @@
     "test": "vitest run",
     "db:migrate": "tsx --env-file-if-exists=.env src/cli/migrate.ts",
     "setup:admin": "tsx --env-file-if-exists=.env src/cli/create-admin.ts",
-    "jobs:run": "tsx --env-file-if-exists=.env src/cli/run-jobs.ts"
+    "jobs:run": "tsx --env-file-if-exists=.env src/cli/run-jobs.ts",
+    "test:integration": "vitest run -c vitest.integration.config.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.0",

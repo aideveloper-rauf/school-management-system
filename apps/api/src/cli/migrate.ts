@@ -14,7 +14,7 @@ if (direction === 'down' && cfg.NODE_ENV === 'production') {
 const migrator = createMigrator(db);
 const { error, results } = direction === 'down' ? await migrator.migrateDown() : await migrator.migrateToLatest();
 for (const r of results ?? []) console.log(`${r.status.padEnd(8)} ${r.direction} ${r.migrationName}`);
-if (!results?.length) console.log('No migrations to run.');
+if (!results?.length && !error) console.log('No migrations to run.');
 await db.destroy();
 if (error) {
   console.error('Migration failed:', error instanceof Error ? error.message : error);
