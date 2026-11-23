@@ -19,7 +19,9 @@ afterAll(async () => db?.destroy());
 function declaredSchema(): Map<string, Map<string, boolean>> {
   const file = ts.createSourceFile('types.ts', readFileSync('src/db/types.ts', 'utf8'), ts.ScriptTarget.Latest, true);
   const interfaces = new Map<string, ts.InterfaceDeclaration>();
-  file.forEachChild((n) => { if (ts.isInterfaceDeclaration(n)) interfaces.set(n.name.text, n); });
+  file.forEachChild((n) => {
+    if (ts.isInterfaceDeclaration(n)) interfaces.set(n.name.text, n);
+  });
 
   const isNullable = (t: ts.TypeNode | undefined): boolean =>
     !!t && ts.isUnionTypeNode(t) && t.types.some((m) => ts.isLiteralTypeNode(m) && m.literal.kind === ts.SyntaxKind.NullKeyword);
@@ -75,7 +77,11 @@ describe('migrations on an empty database', () => {
     }
 
     const asObject = (m: Map<string, Map<string, boolean>>) =>
-      Object.fromEntries([...m].sort(([a], [b]) => a.localeCompare(b)).map(([t, cols]) => [t, Object.fromEntries([...cols].sort(([a], [b]) => a.localeCompare(b)))]));
+      Object.fromEntries(
+        [...m]
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([t, cols]) => [t, Object.fromEntries([...cols].sort(([a], [b]) => a.localeCompare(b)))]),
+      );
     expect(asObject(declared)).toEqual(asObject(actual));
   });
 

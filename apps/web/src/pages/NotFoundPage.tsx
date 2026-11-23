@@ -6,7 +6,9 @@ export function NotFoundPage() {
   return (
     <section className="space-y-3">
       <h1 className="text-2xl font-semibold">{t('common.notFoundPage')}</h1>
-      <Link to="/" className="text-brand-700 underline">{t('common.backHome')}</Link>
+      <Link to="/" className="text-brand-700 underline">
+        {t('common.backHome')}
+      </Link>
     </section>
   );
 }

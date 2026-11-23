@@ -15,7 +15,12 @@ const envSchema = z.object({
   DB_NAME: z.string().min(1).default('school_sms'),
   DB_USER: z.string().min(1).default('school_sms'),
   DB_PASSWORD: z.string().default(''),
-  SESSION_TTL_MINUTES: z.coerce.number().int().min(5).max(7 * 24 * 60).default(480),
+  SESSION_TTL_MINUTES: z.coerce
+    .number()
+    .int()
+    .min(5)
+    .max(7 * 24 * 60)
+    .default(480),
   STORAGE_DIR: z.string().default('../../storage'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   COOKIE_SECURE: bool,

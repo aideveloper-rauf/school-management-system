@@ -42,14 +42,17 @@ try {
   await db.transaction().execute(async (trx) => {
     const school = await trx.selectFrom('schools').select('id').executeTakeFirst();
     if (!school) await trx.insertInto('schools').values({ name: values.school!, default_locale: 'en', timezone: 'Asia/Colombo' }).execute();
-    const res = await trx.insertInto('users').values({
-      identifier: values.email!.trim().toLowerCase(),
-      display_name: values.name!,
-      password_hash: passwordHash,
-      locale: 'en',
-      status: 'active',
-      password_changed_at: new Date(),
-    }).executeTakeFirstOrThrow();
+    const res = await trx
+      .insertInto('users')
+      .values({
+        identifier: values.email!.trim().toLowerCase(),
+        display_name: values.name!,
+        password_hash: passwordHash,
+        locale: 'en',
+        status: 'active',
+        password_changed_at: new Date(),
+      })
+      .executeTakeFirstOrThrow();
     const userId = Number(res.insertId);
     await trx.insertInto('user_roles').values({ user_id: userId, role: 'school_admin', granted_by: null }).execute();
     await recordAudit(trx, null, { action: 'setup.first_admin_created', actorUserId: null, entityType: 'user', entityId: userId });

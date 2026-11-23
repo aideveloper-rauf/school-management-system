@@ -16,8 +16,12 @@ export const auditRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { db }) =
     let base = db.selectFrom('audit_events');
     if (q.action) base = base.where('action', '=', q.action);
     const [items, total] = await Promise.all([
-      base.select(['id', 'actor_user_id', 'action', 'entity_type', 'entity_id', 'created_at'])
-        .orderBy('id', 'desc').limit(q.pageSize).offset((q.page - 1) * q.pageSize).execute(),
+      base
+        .select(['id', 'actor_user_id', 'action', 'entity_type', 'entity_id', 'created_at'])
+        .orderBy('id', 'desc')
+        .limit(q.pageSize)
+        .offset((q.page - 1) * q.pageSize)
+        .execute(),
       base.select(db.fn.countAll<number>().as('n')).executeTakeFirstOrThrow(),
     ]);
     return { items, page: q.page, pageSize: q.pageSize, total: Number(total.n) };

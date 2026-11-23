@@ -5,7 +5,13 @@ import en from './locales/en.json';
 import si from './locales/si.json';
 import ta from './locales/ta.json';
 
-const stored = (() => { try { return localStorage.getItem('sms.locale'); } catch { return null; } })();
+const stored = (() => {
+  try {
+    return localStorage.getItem('sms.locale');
+  } catch {
+    return null;
+  }
+})();
 
 void i18n.use(initReactI18next).init({
   resources: { en: { translation: en }, si: { translation: si }, ta: { translation: ta } },
@@ -18,7 +24,11 @@ void i18n.use(initReactI18next).init({
 
 i18n.on('languageChanged', (lng) => {
   document.documentElement.lang = lng;
-  try { localStorage.setItem('sms.locale', lng); } catch { /* storage unavailable */ }
+  try {
+    localStorage.setItem('sms.locale', lng);
+  } catch {
+    /* storage unavailable */
+  }
 });
 
 export default i18n;

@@ -11,7 +11,11 @@ export function LanguageSwitcher() {
         value={i18n.resolvedLanguage}
         onChange={(e) => void i18n.changeLanguage(e.target.value)}
       >
-        {LOCALES.map((l) => <option key={l} value={l}>{t(`language.${l}`)}</option>)}
+        {LOCALES.map((l) => (
+          <option key={l} value={l}>
+            {t(`language.${l}`)}
+          </option>
+        ))}
       </select>
     </label>
   );

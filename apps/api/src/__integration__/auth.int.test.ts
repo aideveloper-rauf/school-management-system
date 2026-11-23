@@ -57,7 +57,12 @@ describe('login → session → logout (real MySQL)', () => {
     expect(noCsrf.statusCode).toBe(403);
     expect(noCsrf.json().error.code).toBe('CSRF_FAILED');
 
-    const out = await app.inject({ method: 'POST', url: '/api/v1/auth/logout', cookies: { [SESSION_COOKIE]: cookie! }, headers: { [CSRF_HEADER]: csrf } });
+    const out = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/logout',
+      cookies: { [SESSION_COOKIE]: cookie! },
+      headers: { [CSRF_HEADER]: csrf },
+    });
     expect(out.statusCode).toBe(200);
 
     const after = await app.inject({ method: 'GET', url: '/api/v1/auth/session', cookies: { [SESSION_COOKIE]: cookie! } });

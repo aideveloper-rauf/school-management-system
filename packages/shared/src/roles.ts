@@ -6,15 +6,7 @@
  * guardian–student link) before returning or changing data.
  * UI visibility derived from these values is a convenience, not security.
  */
-export const ROLES = [
-  'school_admin',
-  'principal',
-  'academic_coordinator',
-  'teacher',
-  'registrar',
-  'student',
-  'guardian',
-] as const;
+export const ROLES = ['school_admin', 'principal', 'academic_coordinator', 'teacher', 'registrar', 'student', 'guardian'] as const;
 export type Role = (typeof ROLES)[number];
 
 export const PERMISSIONS = [
@@ -102,20 +94,8 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'marks.moderate',
     'announcements.publish',
   ],
-  teacher: [
-    ...READ_BASICS,
-    'academic.structure.read',
-    'students.read.scoped',
-    'attendance.record.scoped',
-    'marks.enter.scoped',
-  ],
-  registrar: [
-    ...READ_BASICS,
-    'academic.structure.read',
-    'students.read.all',
-    'students.manage',
-    'guardians.link.manage',
-  ],
+  teacher: [...READ_BASICS, 'academic.structure.read', 'students.read.scoped', 'attendance.record.scoped', 'marks.enter.scoped'],
+  registrar: [...READ_BASICS, 'academic.structure.read', 'students.read.all', 'students.manage', 'guardians.link.manage'],
   student: [...READ_BASICS, 'results.read.own'],
   guardian: [...READ_BASICS, 'results.read.own'],
 };

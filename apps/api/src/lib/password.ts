@@ -31,7 +31,12 @@ export async function verifyPassword(password: string, stored: string): Promise<
   if (parts.length !== 6 || parts[0] !== 'scrypt') return false;
   const [, n, r, p, saltB64, hashB64] = parts as [string, string, string, string, string, string];
   const expected = Buffer.from(hashB64, 'base64');
-  const key = await scrypt(password.normalize('NFKC'), Buffer.from(saltB64, 'base64'), expected.length, opts(Number(n), Number(r), Number(p)));
+  const key = await scrypt(
+    password.normalize('NFKC'),
+    Buffer.from(saltB64, 'base64'),
+    expected.length,
+    opts(Number(n), Number(r), Number(p)),
+  );
   return key.length === expected.length && timingSafeEqual(key, expected);
 }
 

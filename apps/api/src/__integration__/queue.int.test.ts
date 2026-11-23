@@ -18,7 +18,15 @@ describe('DB-backed job queue (real MySQL)', () => {
   it('runs a job enqueued just now', async () => {
     const seen: unknown[] = [];
     await enqueue(db, 'echo', { n: 1 });
-    const processed = await drainQueue(db, { echo: async (p) => { seen.push(p); } }, 5_000);
+    const processed = await drainQueue(
+      db,
+      {
+        echo: async (p) => {
+          seen.push(p);
+        },
+      },
+      5_000,
+    );
     expect(processed).toBe(1);
     expect(seen).toEqual([{ n: 1 }]);
     const job = await db.selectFrom('jobs').selectAll().executeTakeFirstOrThrow();
@@ -49,7 +57,15 @@ describe('DB-backed job queue (real MySQL)', () => {
 
   it('retries a failing job later and keeps only the error message', async () => {
     await enqueue(db, 'boom', {}, { maxAttempts: 2 });
-    await drainQueue(db, { boom: async () => { throw new Error('upstream unavailable'); } }, 5_000);
+    await drainQueue(
+      db,
+      {
+        boom: async () => {
+          throw new Error('upstream unavailable');
+        },
+      },
+      5_000,
+    );
     let job = await db.selectFrom('jobs').selectAll().executeTakeFirstOrThrow();
     expect(job.status).toBe('pending');
     expect(job.attempts).toBe(1);
@@ -57,8 +73,19 @@ describe('DB-backed job queue (real MySQL)', () => {
     expect(new Date(job.run_after).getTime()).toBeGreaterThan(Date.now());
 
     // Make it due again; the second failure exhausts max_attempts.
-    await db.updateTable('jobs').set({ run_after: sql<Date>`CURRENT_TIMESTAMP - INTERVAL 1 SECOND` }).execute();
-    await drainQueue(db, { boom: async () => { throw new Error('still down'); } }, 5_000);
+    await db
+      .updateTable('jobs')
+      .set({ run_after: sql<Date>`CURRENT_TIMESTAMP - INTERVAL 1 SECOND` })
+      .execute();
+    await drainQueue(
+      db,
+      {
+        boom: async () => {
+          throw new Error('still down');
+        },
+      },
+      5_000,
+    );
     job = await db.selectFrom('jobs').selectAll().executeTakeFirstOrThrow();
     expect(job.status).toBe('failed');
   });
@@ -72,7 +99,10 @@ describe('DB-backed job queue (real MySQL)', () => {
 
   it('releases jobs stuck in running', async () => {
     await enqueue(db, 'echo', {});
-    await db.updateTable('jobs').set({ status: 'running', locked_at: sql<Date>`CURRENT_TIMESTAMP - INTERVAL 30 MINUTE` }).execute();
+    await db
+      .updateTable('jobs')
+      .set({ status: 'running', locked_at: sql<Date>`CURRENT_TIMESTAMP - INTERVAL 30 MINUTE` })
+      .execute();
     await releaseStaleJobs(db, 15);
     const job = await db.selectFrom('jobs').selectAll().executeTakeFirstOrThrow();
     expect(job.status).toBe('pending');

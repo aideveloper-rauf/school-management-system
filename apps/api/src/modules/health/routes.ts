@@ -20,7 +20,11 @@ export const healthRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { db }) 
   app.get('/ops/status', { preHandler: requirePermission('ops.status.read') }, async () => {
     const [schemaVersion, queue, school] = await Promise.all([
       currentSchemaVersion(db),
-      db.selectFrom('jobs').select(['status', db.fn.countAll<number>().as('count')]).groupBy('status').execute(),
+      db
+        .selectFrom('jobs')
+        .select(['status', db.fn.countAll<number>().as('count')])
+        .groupBy('status')
+        .execute(),
       db.selectFrom('schools').select('id').executeTakeFirst(),
     ]);
     return {

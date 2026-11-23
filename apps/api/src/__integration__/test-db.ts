@@ -50,13 +50,16 @@ export async function createUser(
   db: Db,
   opts: { identifier: string; password: string; roles?: string[]; status?: 'active' | 'disabled' | 'invited' },
 ): Promise<number> {
-  const res = await db.insertInto('users').values({
-    identifier: opts.identifier,
-    display_name: opts.identifier,
-    password_hash: await hashPassword(opts.password),
-    locale: 'en',
-    status: opts.status ?? 'active',
-  }).executeTakeFirstOrThrow();
+  const res = await db
+    .insertInto('users')
+    .values({
+      identifier: opts.identifier,
+      display_name: opts.identifier,
+      password_hash: await hashPassword(opts.password),
+      locale: 'en',
+      status: opts.status ?? 'active',
+    })
+    .executeTakeFirstOrThrow();
   const id = Number(res.insertId);
   for (const role of opts.roles ?? []) await db.insertInto('user_roles').values({ user_id: id, role, granted_by: null }).execute();
   return id;

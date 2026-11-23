@@ -28,18 +28,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const ctrl = new AbortController();
     api<SessionResponse>('/auth/session', { signal: ctrl.signal })
       .then(apply)
-      .catch((e) => { if (!(e instanceof ApiError) || e.status !== 401) console.warn('session check failed'); })
+      .catch((e) => {
+        if (!(e instanceof ApiError) || e.status !== 401) console.warn('session check failed');
+      })
       .finally(() => setLoading(false));
     return () => ctrl.abort();
   }, [apply]);
 
-  const value = useMemo<AuthState>(() => ({
-    session,
-    loading,
-    login: async (req) => apply(await api<SessionResponse>('/auth/login', { method: 'POST', body: req })),
-    logout: async () => { try { await api('/auth/logout', { method: 'POST' }); } finally { apply(null); } },
-    can: (p) => Boolean(session?.permissions.includes(p)),
-  }), [session, loading, apply]);
+  const value = useMemo<AuthState>(
+    () => ({
+      session,
+      loading,
+      login: async (req) => apply(await api<SessionResponse>('/auth/login', { method: 'POST', body: req })),
+      logout: async () => {
+        try {
+          await api('/auth/logout', { method: 'POST' });
+        } finally {
+          apply(null);
+        }
+      },
+      can: (p) => Boolean(session?.permissions.includes(p)),
+    }),
+    [session, loading, apply],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -1,10 +1,10 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --color-brand-50: #eff6ff;
   --color-brand-600: #1d4ed8;
   --color-brand-700: #1e40af;
-  --font-sans: "Noto Sans", "Noto Sans Sinhala", "Noto Sans Tamil", system-ui, sans-serif;
+  --font-sans: 'Noto Sans', 'Noto Sans Sinhala', 'Noto Sans Tamil', system-ui, sans-serif;
 }
 
 :focus-visible {

@@ -5,3 +5,5 @@ package-lock.json
 *.tgz
 # Long-form docs keep their authored wrapping.
 *.md
+# Migrations are immutable once released; never reformat them.
+apps/api/src/db/migrations/

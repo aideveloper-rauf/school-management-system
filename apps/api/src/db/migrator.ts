@@ -3,7 +3,12 @@ import type { Db } from './client.js';
 import { migrationProvider } from './migrations/index.js';
 
 export function createMigrator(db: Db): Migrator {
-  return new Migrator({ db, provider: migrationProvider, migrationTableName: 'schema_migrations', migrationLockTableName: 'schema_migrations_lock' });
+  return new Migrator({
+    db,
+    provider: migrationProvider,
+    migrationTableName: 'schema_migrations',
+    migrationLockTableName: 'schema_migrations_lock',
+  });
 }
 
 /** Latest migration name applied, for the health/status endpoint. */

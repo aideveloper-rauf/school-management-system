@@ -61,7 +61,8 @@ describe('API foundation', () => {
 
   it('rejects cross-origin state-changing requests', async () => {
     const res = await app.inject({
-      method: 'POST', url: '/api/v1/auth/login',
+      method: 'POST',
+      url: '/api/v1/auth/login',
       headers: { origin: 'https://evil.example' },
       payload: { identifier: 'a', password: 'b' },
     });
@@ -78,7 +79,11 @@ describe('API foundation', () => {
   });
 
   it('does not leak whether an account exists', async () => {
-    const res = await app.inject({ method: 'POST', url: '/api/v1/auth/login', payload: { identifier: 'nobody@example.lk', password: 'whatever-123' } });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/login',
+      payload: { identifier: 'nobody@example.lk', password: 'whatever-123' },
+    });
     expect(res.statusCode).toBe(401);
     expect(res.json().error.message).toBe('errors.invalidCredentials');
   });

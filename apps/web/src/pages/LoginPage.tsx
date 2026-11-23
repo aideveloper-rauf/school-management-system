@@ -39,19 +39,37 @@ export function LoginPage() {
           </div>
           <LanguageSwitcher />
         </div>
-        {error && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">{t(error)}</p>}
+        {error && (
+          <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+            {t(error)}
+          </p>
+        )}
         <label className="block text-sm">
           <span className="mb-1 block font-medium">{t('auth.identifier')}</span>
-          <input className="w-full rounded-md border border-slate-300 px-3 py-2" autoComplete="username" required
-            value={identifier} onChange={(e) => setIdentifier(e.target.value)} />
+          <input
+            className="w-full rounded-md border border-slate-300 px-3 py-2"
+            autoComplete="username"
+            required
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+          />
         </label>
         <label className="block text-sm">
           <span className="mb-1 block font-medium">{t('auth.password')}</span>
-          <input className="w-full rounded-md border border-slate-300 px-3 py-2" type="password" autoComplete="current-password" required
-            value={password} onChange={(e) => setPassword(e.target.value)} />
+          <input
+            className="w-full rounded-md border border-slate-300 px-3 py-2"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </label>
-        <button type="submit" disabled={busy || !identifier || !password}
-          className="w-full rounded-md bg-brand-600 px-4 py-2 font-medium text-white hover:bg-brand-700 disabled:opacity-60">
+        <button
+          type="submit"
+          disabled={busy || !identifier || !password}
+          className="w-full rounded-md bg-brand-600 px-4 py-2 font-medium text-white hover:bg-brand-700 disabled:opacity-60"
+        >
           {busy ? t('auth.signingIn') : t('auth.submit')}
         </button>
       </form>

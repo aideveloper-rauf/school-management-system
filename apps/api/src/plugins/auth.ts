@@ -39,7 +39,15 @@ export async function loadAuthContext(db: Db, cfg: AppConfig, rawToken: string):
   const row = await db
     .selectFrom('sessions')
     .innerJoin('users', 'users.id', 'sessions.user_id')
-    .select(['sessions.user_id', 'sessions.csrf_token', 'sessions.expires_at', 'sessions.last_seen_at', 'users.display_name', 'users.locale', 'users.status'])
+    .select([
+      'sessions.user_id',
+      'sessions.csrf_token',
+      'sessions.expires_at',
+      'sessions.last_seen_at',
+      'users.display_name',
+      'users.locale',
+      'users.status',
+    ])
     .where('sessions.id_hash', '=', sessionHash)
     .executeTakeFirst();
   if (!row || row.status !== 'active' || new Date(row.expires_at).getTime() <= Date.now()) return null;
@@ -126,10 +134,17 @@ export function requirePermission(...anyOf: Permission[]): preHandlerHookHandler
  * onRoute check: every route must either use requireAuth/requirePermission as a preHandler
  * or declare `config: { public: true }`. Throws at startup, so a forgotten guard cannot ship.
  */
-export function assertRouteDeclaresAuth(route: { method: string | string[]; url: string; preHandler?: unknown; config?: { public?: boolean } }): void {
+export function assertRouteDeclaresAuth(route: {
+  method: string | string[];
+  url: string;
+  preHandler?: unknown;
+  config?: { public?: boolean };
+}): void {
   if (route.config?.public === true) return;
   const handlers = Array.isArray(route.preHandler) ? route.preHandler : [route.preHandler];
   if (!handlers.some(isGuard)) {
-    throw new Error(`Route ${String(route.method)} ${route.url} has no auth preHandler; use requireAuth/requirePermission or config.public`);
+    throw new Error(
+      `Route ${String(route.method)} ${route.url} has no auth preHandler; use requireAuth/requirePermission or config.public`,
+    );
   }
 }

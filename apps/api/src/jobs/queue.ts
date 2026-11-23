@@ -44,7 +44,11 @@ async function claim(db: Db) {
       .skipLocked()
       .executeTakeFirst();
     if (!job) return null;
-    await trx.updateTable('jobs').set({ status: 'running', locked_at: new Date(), attempts: job.attempts + 1 }).where('id', '=', job.id).execute();
+    await trx
+      .updateTable('jobs')
+      .set({ status: 'running', locked_at: new Date(), attempts: job.attempts + 1 })
+      .where('id', '=', job.id)
+      .execute();
     return { ...job, attempts: job.attempts + 1 };
   });
 }
@@ -66,13 +70,17 @@ export async function drainQueue(db: Db, handlers: Record<string, JobHandler>, b
     } catch (err) {
       const failed = job.attempts >= job.max_attempts;
       const backoffMs = Math.min(60 * 60_000, 2 ** job.attempts * 30_000);
-      await db.updateTable('jobs').set({
-        status: failed ? 'failed' : 'pending',
-        locked_at: null,
-        run_after: new Date(Date.now() + backoffMs),
-        // Error message only; handlers must not put personal data in error messages.
-        last_error: String((err as Error).message ?? err).slice(0, 1000),
-      }).where('id', '=', job.id).execute();
+      await db
+        .updateTable('jobs')
+        .set({
+          status: failed ? 'failed' : 'pending',
+          locked_at: null,
+          run_after: new Date(Date.now() + backoffMs),
+          // Error message only; handlers must not put personal data in error messages.
+          last_error: String((err as Error).message ?? err).slice(0, 1000),
+        })
+        .where('id', '=', job.id)
+        .execute();
     }
   }
   return processed;
@@ -80,7 +88,9 @@ export async function drainQueue(db: Db, handlers: Record<string, JobHandler>, b
 
 /** Requeue jobs stuck in "running" (e.g. process killed by host limits). */
 export async function releaseStaleJobs(db: Db, olderThanMinutes = 15): Promise<void> {
-  await db.updateTable('jobs').set({ status: 'pending', locked_at: null })
+  await db
+    .updateTable('jobs')
+    .set({ status: 'pending', locked_at: null })
     .where('status', '=', 'running')
     .where('locked_at', '<', sql<Date>`CURRENT_TIMESTAMP - INTERVAL ${sql.lit(olderThanMinutes)} MINUTE`)
     .execute();

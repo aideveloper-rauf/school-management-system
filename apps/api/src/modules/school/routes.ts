@@ -28,13 +28,22 @@ export const schoolRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { db }) 
     const s = await db.selectFrom('schools').select('id').executeTakeFirst();
     if (!s) throw new AppError('SETUP_REQUIRED', 'errors.setupRequired');
     await db.transaction().execute(async (trx) => {
-      await trx.updateTable('schools').set({
-        ...(input.name !== undefined && { name: input.name }),
-        ...(input.shortName !== undefined && { short_name: input.shortName }),
-        ...(input.defaultLocale !== undefined && { default_locale: input.defaultLocale }),
-        ...(input.timezone !== undefined && { timezone: input.timezone }),
-      }).where('id', '=', s.id).execute();
-      await recordAudit(trx, req, { action: 'school.settings.updated', entityType: 'school', entityId: s.id, metadata: { fields: Object.keys(input) } });
+      await trx
+        .updateTable('schools')
+        .set({
+          ...(input.name !== undefined && { name: input.name }),
+          ...(input.shortName !== undefined && { short_name: input.shortName }),
+          ...(input.defaultLocale !== undefined && { default_locale: input.defaultLocale }),
+          ...(input.timezone !== undefined && { timezone: input.timezone }),
+        })
+        .where('id', '=', s.id)
+        .execute();
+      await recordAudit(trx, req, {
+        action: 'school.settings.updated',
+        entityType: 'school',
+        entityId: s.id,
+        metadata: { fields: Object.keys(input) },
+      });
     });
     return { ok: true };
   });

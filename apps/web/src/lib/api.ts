@@ -1,13 +1,20 @@
 import { API_PREFIX, CSRF_HEADER, type ApiErrorBody, type ErrorCode } from '@sms/shared';
 
 export class ApiError extends Error {
-  constructor(readonly status: number, readonly code: ErrorCode, message: string, readonly details?: ApiErrorBody['error']['details']) {
+  constructor(
+    readonly status: number,
+    readonly code: ErrorCode,
+    message: string,
+    readonly details?: ApiErrorBody['error']['details'],
+  ) {
     super(message);
   }
 }
 
 let csrfToken: string | null = null;
-export const setCsrfToken = (t: string | null) => { csrfToken = t; };
+export const setCsrfToken = (t: string | null) => {
+  csrfToken = t;
+};
 
 /** Same-origin JSON client. Cookies carry the session; unsafe methods send the CSRF header. */
 export async function api<T>(path: string, init: { method?: string; body?: unknown; signal?: AbortSignal } = {}): Promise<T> {
@@ -26,6 +33,10 @@ export async function api<T>(path: string, init: { method?: string; body?: unkno
   if (res.ok) return (await res.json()) as T;
 
   let err: ApiErrorBody['error'] = { code: 'INTERNAL', message: 'errors.internal' };
-  try { err = ((await res.json()) as ApiErrorBody).error; } catch { /* non-JSON */ }
+  try {
+    err = ((await res.json()) as ApiErrorBody).error;
+  } catch {
+    /* non-JSON */
+  }
   throw new ApiError(res.status, err.code, err.message, err.details);
 }
