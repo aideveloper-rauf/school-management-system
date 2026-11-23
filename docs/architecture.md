@@ -145,9 +145,33 @@ duplicate / in-use / bad-reference / check errors (`fromDbError`) so races still
 Reads need `academic.structure.read`, writes `academic.structure.manage`. Every write is audited in the same transaction
 with field names only. Deletes return `204`. Request schemas live in `@sms/shared` (`schemas/academic.ts`).
 
+### Users, roles and passwords (`modules/users/`, `modules/auth/`, migration 0004)
+
+| Endpoint | Permission | Notes |
+|---|---|---|
+| `GET /users?q&role&status&page&pageSize`, `GET /users/:id` | `users.read` | Search escapes LIKE wildcards |
+| `POST /users` (`onboarding: invite \| temporary_password`) | `users.manage` (+ `roles.assign` if roles given) | Invite needs an email identifier |
+| `PATCH /users/:id`, `POST /users/:id/disable \| enable \| invitation \| temporary-password` | `users.manage` | Disable ends sessions and links; cannot disable self |
+| `PUT /users/:id/roles` | `roles.assign` | One audit entry per granted/revoked role |
+| `POST /auth/password` | signed in | Keeps this session, ends the others |
+| `POST /auth/password-reset/request \| confirm`, `POST /auth/invitations/accept` | public, rate-limited | Request always returns 202; max 3 reset requests per account per hour |
+
+- **Last administrator:** the last active `school_admin` cannot be disabled or lose the role (grants are locked
+  `FOR UPDATE` while checking).
+- **Temporary passwords** set `must_change_password`; until changed, every guard returns `403 PASSWORD_CHANGE_REQUIRED`
+  except routes marked `config.allowDuringPasswordChange` (session, password change, logout).
+- **One-time links** (`user_tokens`): the request stores a *pending* row; the `user_token.send` job mints the token,
+  stores only its SHA-256 and real expiry (invite 72 h, reset 1 h), and emails `APP_ORIGIN/#/…?token=`. The raw token is
+  never in the database, job payloads, logs or audit. Newer requests, password changes and disabling mark older links
+  used. Mail adapters: `file` (dev outbox under `STORAGE_DIR/outbox`) and `smtp` (nodemailer).
+- Public routes skip the session CSRF token (they never act on the session) but keep the Origin check.
+
 ## 6. Known gaps (tracked in backlog.md)
 
-- CI workflow exists (`.github/workflows/ci.yml`) but has not run yet: the repository has no GitHub remote.
-- No password reset, user management UI, MFA, backup/restore tooling or update client yet.
+- No user-management / password screens in the web app yet (the API exists; links point at `/#/accept-invite` and
+  `/#/reset-password`, which the UI must add). No MFA, backup/restore tooling or update client yet.
+- Email templates are English only; si/ta fall back to English.
+- The reset-request endpoint does a little more work for real accounts than unknown ones, so response timing may
+  differ slightly; the body and status are identical, and requests are rate-limited.
 - si/ta translations are not supplied yet (only language names).
 - Hosting compatibility is not validated on a real cPanel plan.

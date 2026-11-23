@@ -24,6 +24,8 @@ export interface UserTable {
   status: 'active' | 'disabled' | 'invited';
   password_changed_at: Date | null;
   last_login_at: Date | null;
+  /** Set when an administrator assigns a temporary password. */
+  must_change_password: Generated<number>;
   created_at: CreatedAt;
   updated_at: UpdatedAt;
 }
@@ -180,7 +182,22 @@ export interface CalendarEventTable {
   updated_at: UpdatedAt;
 }
 
+export type UserTokenPurpose = 'invite' | 'reset';
+
+export interface UserTokenTable {
+  id: Generated<number>;
+  user_id: number;
+  purpose: UserTokenPurpose;
+  /** SHA-256 of the token; NULL until the email job mints and sends it. */
+  token_hash: string | null;
+  expires_at: Date;
+  used_at: Date | null;
+  created_by: number | null;
+  created_at: CreatedAt;
+}
+
 export interface Database {
+  user_tokens: UserTokenTable;
   grades: GradeTable;
   subjects: SubjectTable;
   grade_subjects: GradeSubjectTable;

@@ -24,4 +24,6 @@ export interface SessionResponse {
   user: SessionUser;
   permissions: string[];
   csrfToken: string;
+  /** True after an administrator set a temporary password; the UI must ask for a new one. */
+  mustChangePassword: boolean;
 }

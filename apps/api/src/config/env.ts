@@ -25,6 +25,14 @@ const envSchema = z.object({
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   COOKIE_SECURE: bool,
   FEATURE_AI: bool,
+  // Outgoing email (invitations, password resets). "file" writes messages to STORAGE_DIR/outbox for development.
+  MAIL_TRANSPORT: z.enum(['file', 'smtp']).default('file'),
+  MAIL_FROM: z.string().min(3).default('School <no-reply@localhost>'),
+  SMTP_HOST: z.string().default(''),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_SECURE: bool,
+  SMTP_USER: z.string().default(''),
+  SMTP_PASSWORD: z.string().default(''),
 });
 
 export type AppConfig = z.infer<typeof envSchema>;
@@ -39,6 +47,9 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): AppConfig {
   const cfg = parsed.data;
   if (cfg.NODE_ENV === 'production' && !cfg.COOKIE_SECURE) {
     throw new Error('COOKIE_SECURE must be true in production (serve over HTTPS).');
+  }
+  if (cfg.MAIL_TRANSPORT === 'smtp' && !cfg.SMTP_HOST) {
+    throw new Error('SMTP_HOST is required when MAIL_TRANSPORT=smtp.');
   }
   return cfg;
 }

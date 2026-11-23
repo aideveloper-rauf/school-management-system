@@ -17,6 +17,8 @@ export const ERROR_CODES = [
   'CONFLICT',
   'RATE_LIMITED',
   'CSRF_FAILED',
+  /** Signed in with a temporary password: only /auth/session, /auth/password and logout are allowed. */
+  'PASSWORD_CHANGE_REQUIRED',
   'SETUP_REQUIRED',
   'SERVICE_UNAVAILABLE',
   'INTERNAL',

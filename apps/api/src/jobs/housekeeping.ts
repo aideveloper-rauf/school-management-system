@@ -11,6 +11,13 @@ export async function housekeeping(db: Db): Promise<void> {
     .deleteFrom('login_attempts')
     .where('attempted_at', '<', sql<Date>`CURRENT_TIMESTAMP - INTERVAL 30 DAY`)
     .execute();
+  // Expired or used one-time tokens (kept 7 days after use for support questions).
+  await db
+    .deleteFrom('user_tokens')
+    .where((eb) =>
+      eb.or([eb('expires_at', '<', sql<Date>`CURRENT_TIMESTAMP`), eb('used_at', '<', sql<Date>`CURRENT_TIMESTAMP - INTERVAL 7 DAY`)]),
+    )
+    .execute();
   await db
     .deleteFrom('jobs')
     .where('status', '=', 'done')

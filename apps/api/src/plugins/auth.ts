@@ -16,6 +16,8 @@ export interface AuthContext {
   permissions: Set<Permission>;
   sessionHash: string;
   csrfToken: string;
+  /** Temporary password in use: only routes with config.allowDuringPasswordChange are reachable. */
+  mustChangePassword: boolean;
 }
 
 declare module 'fastify' {
@@ -47,6 +49,7 @@ export async function loadAuthContext(db: Db, cfg: AppConfig, rawToken: string):
       'users.display_name',
       'users.locale',
       'users.status',
+      'users.must_change_password',
     ])
     .where('sessions.id_hash', '=', sessionHash)
     .executeTakeFirst();
@@ -70,6 +73,7 @@ export async function loadAuthContext(db: Db, cfg: AppConfig, rawToken: string):
     permissions: permissionsFor(roles),
     sessionHash,
     csrfToken: row.csrf_token,
+    mustChangePassword: Boolean(row.must_change_password),
   };
 }
 
@@ -97,7 +101,10 @@ export const authPlugin = fp<{ db: Db; config: AppConfig }>(async (app, { db, co
       return;
     }
 
-    if (unsafe) {
+    // Public routes (login, token links) never act on the session, so they do not need its CSRF token;
+    // the Origin check above still blocks cross-site posts. Without this, opening an invitation or
+    // reset link in a browser where someone is signed in would fail.
+    if (unsafe && req.routeOptions.config?.public !== true) {
       const header = req.headers[CSRF_HEADER];
       if (typeof header !== 'string' || header !== req.auth.csrfToken) {
         throw new AppError('CSRF_FAILED', 'errors.csrf');
@@ -110,6 +117,16 @@ declare module 'fastify' {
   interface FastifyContextConfig {
     /** Mark a route as intentionally unauthenticated (see assertRouteDeclaresAuth). */
     public?: boolean;
+    /** Reachable while the user must still replace a temporary password (session, password change, logout). */
+    allowDuringPasswordChange?: boolean;
+  }
+}
+
+/** Signed-in checks shared by every guard. */
+function assertSignedIn(req: FastifyRequest): void {
+  if (!req.auth) throw unauthenticated();
+  if (req.auth.mustChangePassword && req.routeOptions.config.allowDuringPasswordChange !== true) {
+    throw new AppError('PASSWORD_CHANGE_REQUIRED', 'errors.passwordChangeRequired');
   }
 }
 
@@ -119,15 +136,22 @@ const markGuard = (fn: preHandlerHookHandler): preHandlerHookHandler => Object.a
 const isGuard = (fn: unknown) => typeof fn === 'function' && (fn as unknown as Record<symbol, unknown>)[AUTH_GUARD] === true;
 
 export const requireAuth: preHandlerHookHandler = markGuard(async (req) => {
-  if (!req.auth) throw unauthenticated();
+  assertSignedIn(req);
 });
 
 /** Coarse permission gate. Routes must still apply record-level scope checks. */
 export function requirePermission(...anyOf: Permission[]): preHandlerHookHandler {
   return markGuard(async (req) => {
-    if (!req.auth) throw unauthenticated();
+    assertSignedIn(req);
     if (!anyOf.some((p) => req.auth!.permissions.has(p))) throw forbidden();
   });
+}
+
+/** Revoke sessions of a user, optionally keeping one (e.g. the session that changed the password). */
+export async function revokeSessions(db: Db, userId: number, keepSessionHash?: string): Promise<void> {
+  let q = db.deleteFrom('sessions').where('user_id', '=', userId);
+  if (keepSessionHash) q = q.where('id_hash', '!=', keepSessionHash);
+  await q.execute();
 }
 
 /**

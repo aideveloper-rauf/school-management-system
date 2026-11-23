@@ -32,6 +32,9 @@
 5. First admin: `node dist/cli/create-admin.js --school "…" --email … --name "…"` (prompts for the password).
 6. Upload `apps/web/dist/*` (including `.htaccess`) to `public_html`.
 7. Cron every 5 minutes: `cd ~/apps/sms/apps/api && <node path from the panel> dist/cli/run-jobs.js >> ~/logs/sms-jobs.log 2>&1`.
+   Invitation and reset emails are sent by this cron job, so they arrive up to one interval later.
+   Set `MAIL_TRANSPORT=smtp` and the `SMTP_*` variables (the host's mail server or a provider). With `MAIL_TRANSPORT=file`
+   messages only land in `STORAGE_DIR/outbox`; schools without email can still use temporary passwords.
 8. Verify: `https://school.example.lk/api/v1/health` returns `{"status":"ok"}`; sign in; check *System status*.
 
 ## Local (WAMP) notes

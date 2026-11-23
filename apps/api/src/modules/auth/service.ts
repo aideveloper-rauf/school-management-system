@@ -85,7 +85,11 @@ export async function createSession(db: Db, cfg: AppConfig, userId: number, user
 }
 
 export async function buildSessionResponse(db: Db, userId: number, csrfToken: string): Promise<SessionResponse> {
-  const user = await db.selectFrom('users').select(['id', 'display_name', 'locale']).where('id', '=', userId).executeTakeFirstOrThrow();
+  const user = await db
+    .selectFrom('users')
+    .select(['id', 'display_name', 'locale', 'must_change_password'])
+    .where('id', '=', userId)
+    .executeTakeFirstOrThrow();
   const roles = (await db.selectFrom('user_roles').select('role').where('user_id', '=', userId).execute())
     .map((r) => r.role)
     .filter(isRole);
@@ -93,5 +97,6 @@ export async function buildSessionResponse(db: Db, userId: number, csrfToken: st
     user: { id: user.id, displayName: user.display_name, roles, locale: isLocale(user.locale) ? user.locale : 'en' },
     permissions: [...permissionsFor(roles)].sort(),
     csrfToken,
+    mustChangePassword: Boolean(user.must_change_password),
   };
 }

@@ -4,3 +4,4 @@ export * from './locales.js';
 export * from './schemas/auth.js';
 export * from './schemas/common.js';
 export * from './schemas/academic.js';
+export * from './schemas/users.js';
