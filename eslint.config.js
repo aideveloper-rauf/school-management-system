@@ -19,7 +19,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['apps/api/**/*.ts', 'packages/shared/**/*.ts', '*.js', 'scripts/**/*.mjs'],
+    files: ['apps/api/**/*.ts', 'packages/shared/**/*.ts', '*.js', 'scripts/**/*.mjs', 'scripts/**/*.ts'],
     languageOptions: { globals: globals.node },
   },
   {
@@ -38,7 +38,7 @@ export default tseslint.config(
   },
   {
     // CLIs talk to the operator on stdout.
-    files: ['apps/api/src/cli/**/*.ts', 'scripts/**/*.mjs'],
+    files: ['apps/api/src/cli/**/*.ts', 'scripts/**/*.mjs', 'scripts/**/*.ts'],
     rules: { 'no-console': 'off' },
   },
   {

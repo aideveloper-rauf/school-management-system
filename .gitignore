@@ -12,3 +12,7 @@ Thumbs.db
 
 # Local snapshot archives
 *.tgz
+
+# Release build output
+/release/
+*.key

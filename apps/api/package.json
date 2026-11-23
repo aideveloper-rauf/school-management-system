@@ -16,7 +16,9 @@
     "test:integration": "vitest run -c vitest.integration.config.ts",
     "backup": "tsx --env-file-if-exists=.env src/cli/backup.ts",
     "backup:verify": "tsx --env-file-if-exists=.env src/cli/verify-backup.ts",
-    "restore": "tsx --env-file-if-exists=.env src/cli/restore.ts"
+    "restore": "tsx --env-file-if-exists=.env src/cli/restore.ts",
+    "verify-release": "tsx src/cli/verify-release.ts",
+    "upgrade-check": "tsx --env-file-if-exists=.env src/cli/upgrade-check.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.0",

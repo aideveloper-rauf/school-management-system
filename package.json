@@ -23,10 +23,13 @@
     "format": "prettier --write . && eslint . --fix",
     "backup": "npm run backup -w @sms/api",
     "backup:verify": "npm run backup:verify -w @sms/api --",
-    "restore": "npm run restore -w @sms/api --"
+    "restore": "npm run restore -w @sms/api --",
+    "release": "tsx scripts/release/build.ts",
+    "release:keygen": "tsx scripts/release/keygen.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "esbuild": "^0.28.2",
     "eslint": "^10.15.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",
