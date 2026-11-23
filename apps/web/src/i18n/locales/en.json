@@ -47,6 +47,10 @@
     "validation": "Please check the highlighted fields.",
     "csrf": "Your session expired. Please reload the page.",
     "setupRequired": "This school has not been set up yet.",
+    "duplicate": "An item with the same name or code already exists.",
+    "inUse": "This item is still in use and cannot be deleted. Deactivate it instead.",
+    "invalidReference": "A selected item no longer exists. Please refresh and try again.",
+    "badRequest": "The request could not be processed.",
     "internal": "Something went wrong. Please try again.",
     "network": "Cannot reach the server. Check your connection."
   },

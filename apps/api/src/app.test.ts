@@ -70,6 +70,16 @@ describe('API foundation', () => {
     expect(res.json().error.code).toBe('CSRF_FAILED');
   });
 
+  it('accepts an empty JSON body (bodiless DELETE) but still rejects malformed and poisoned JSON', async () => {
+    const headers = { 'content-type': 'application/json' };
+    const empty = await app.inject({ method: 'POST', url: '/api/v1/auth/login', headers, payload: '' });
+    expect(empty.statusCode).toBe(422); // reached the route; zod rejects the missing body
+    const malformed = await app.inject({ method: 'POST', url: '/api/v1/auth/login', headers, payload: '{nope' });
+    expect(malformed.statusCode).toBe(400);
+    const poisoned = await app.inject({ method: 'POST', url: '/api/v1/auth/login', headers, payload: '{"__proto__":{"x":1}}' });
+    expect(poisoned.statusCode).toBe(400);
+  });
+
   it('refuses to register a route without an auth guard or public flag', () => {
     expect(() => assertRouteDeclaresAuth({ method: 'GET', url: '/api/v1/oops' })).toThrow(/no auth preHandler/);
     expect(() => assertRouteDeclaresAuth({ method: 'GET', url: '/api/v1/oops', preHandler: async () => {} })).toThrow();

@@ -109,7 +109,85 @@ export interface AppMetaTable {
   updated_at: UpdatedAt;
 }
 
+export interface GradeTable {
+  id: Generated<number>;
+  name: string;
+  level: number;
+  is_active: number;
+  created_at: CreatedAt;
+  updated_at: UpdatedAt;
+}
+
+export interface SubjectTable {
+  id: Generated<number>;
+  code: string;
+  name: string;
+  name_si: string | null;
+  name_ta: string | null;
+  is_active: number;
+  created_at: CreatedAt;
+  updated_at: UpdatedAt;
+}
+
+export interface GradeSubjectTable {
+  grade_id: number;
+  subject_id: number;
+  is_optional: number;
+}
+
+export interface RoomTable {
+  id: Generated<number>;
+  name: string;
+  capacity: number | null;
+  is_active: number;
+  created_at: CreatedAt;
+  updated_at: UpdatedAt;
+}
+
+export interface ClassSectionTable {
+  id: Generated<number>;
+  academic_year_id: number;
+  grade_id: number;
+  name: string;
+  medium: string | null;
+  capacity: number | null;
+  home_room_id: number | null;
+  created_at: CreatedAt;
+  updated_at: UpdatedAt;
+}
+
+export interface PeriodDefinitionTable {
+  id: Generated<number>;
+  label: string;
+  sequence: number;
+  /** `HH:MM:SS` (mysql2 returns TIME as a string). */
+  starts_at: string;
+  ends_at: string;
+  is_break: number;
+  created_at: CreatedAt;
+  updated_at: UpdatedAt;
+}
+
+export interface CalendarEventTable {
+  id: Generated<number>;
+  academic_year_id: number | null;
+  title: string;
+  kind: string;
+  starts_on: string;
+  ends_on: string;
+  is_school_day: number;
+  created_at: CreatedAt;
+  updated_at: UpdatedAt;
+}
+
 export interface Database {
+  grades: GradeTable;
+  subjects: SubjectTable;
+  grade_subjects: GradeSubjectTable;
+  rooms: RoomTable;
+  class_sections: ClassSectionTable;
+  period_definitions: PeriodDefinitionTable;
+  calendar_events: CalendarEventTable;
   schools: SchoolTable;
   users: UserTable;
   user_roles: UserRoleTable;

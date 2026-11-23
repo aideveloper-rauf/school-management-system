@@ -1,10 +1,11 @@
 import type { FastifyError, FastifyInstance } from 'fastify';
 import type { ApiErrorBody } from '@sms/shared';
 import { ZodError } from 'zod';
-import { AppError } from '../lib/errors.js';
+import { AppError, fromDbError } from '../lib/errors.js';
 
 export function registerErrorHandling(app: FastifyInstance): void {
-  app.setErrorHandler((err: FastifyError | AppError | ZodError, req, reply) => {
+  app.setErrorHandler((original: FastifyError | AppError | ZodError, req, reply) => {
+    const err = fromDbError(original) ?? original;
     let status = 500;
     let body: ApiErrorBody;
 

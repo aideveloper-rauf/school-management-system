@@ -30,6 +30,7 @@ export async function api<T>(path: string, init: { method?: string; body?: unkno
     body: init.body === undefined ? undefined : JSON.stringify(init.body),
     signal: init.signal,
   });
+  if (res.status === 204) return undefined as T; // e.g. successful DELETE
   if (res.ok) return (await res.json()) as T;
 
   let err: ApiErrorBody['error'] = { code: 'INTERNAL', message: 'errors.internal' };

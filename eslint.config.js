@@ -23,6 +23,20 @@ export default tseslint.config(
     languageOptions: { globals: globals.node },
   },
   {
+    // MySQL silently ignores inline column REFERENCES; 0001 is released and fixed by 0003.
+    files: ['apps/api/src/db/migrations/**/*.ts'],
+    ignores: ['apps/api/src/db/migrations/0001_foundation.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "CallExpression[callee.property.name='references']",
+          message: 'MySQL ignores inline REFERENCES. Use .addForeignKeyConstraint() on the table.',
+        },
+      ],
+    },
+  },
+  {
     // CLIs talk to the operator on stdout.
     files: ['apps/api/src/cli/**/*.ts'],
     rules: { 'no-console': 'off' },

@@ -85,6 +85,21 @@ describe('migrations on an empty database', () => {
     expect(asObject(declared)).toEqual(asObject(actual));
   });
 
+  it('backs every reference column with a real foreign key (MySQL ignores inline REFERENCES)', async () => {
+    const NOT_REFERENCES = new Set(['audit_events.entity_id', 'audit_events.request_id']);
+    const cols = await sql<{ t: string; c: string }>`
+      SELECT table_name AS t, column_name AS c FROM information_schema.columns
+      WHERE table_schema = ${cfg.DB_NAME} AND table_name NOT LIKE 'schema_migrations%'
+        AND (column_name LIKE '%\\_id' OR column_name LIKE '%\\_by')`.execute(db);
+    const fks = await sql<{ t: string; c: string; ref: string }>`
+      SELECT table_name AS t, column_name AS c, referenced_table_name AS ref FROM information_schema.key_column_usage
+      WHERE table_schema = ${cfg.DB_NAME} AND referenced_table_name IS NOT NULL`.execute(db);
+    const withFk = new Set(fks.rows.map((r) => `${r.t}.${r.c}`));
+    const missing = cols.rows.map((r) => `${r.t}.${r.c}`).filter((k) => !NOT_REFERENCES.has(k) && !withFk.has(k));
+    expect(missing).toEqual([]);
+    expect(withFk.size).toBeGreaterThanOrEqual(11);
+  });
+
   it('applies UTC and strict sql_mode to every connection', async () => {
     const r = await sql<{ tz: string; mode: string }>`SELECT @@session.time_zone AS tz, @@session.sql_mode AS mode`.execute(db);
     expect(r.rows[0]!.tz).toBe('+00:00');

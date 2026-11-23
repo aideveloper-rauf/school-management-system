@@ -35,6 +35,16 @@ export async function buildApp({ config, db, logger = true }: BuildAppOptions): 
   });
 
   registerErrorHandling(app);
+
+  // Many HTTP clients send `content-type: application/json` on bodiless DELETE/POST requests.
+  // Treat an empty JSON body as "no body" instead of a 400; keep Fastify's prototype-poisoning checks.
+  const defaultJsonParser = app.getDefaultJsonParser('error', 'error');
+  app.removeContentTypeParser('application/json');
+  app.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
+    const text = typeof body === 'string' ? body : body.toString('utf8');
+    if (text === '') return done(null, undefined);
+    return defaultJsonParser(req, text, done);
+  });
   await app.register(helmet, { contentSecurityPolicy: false }); // CSP is set for the static web app by Apache.
   await app.register(cookie);
   await app.register(rateLimit, { global: true, max: 300, timeWindow: '1 minute' });

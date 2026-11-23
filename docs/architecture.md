@@ -116,10 +116,34 @@ removes expired sessions and old login attempts.
 - `HashRouter` is used so the static build works on any host; switch to `BrowserRouter` once the `.htaccess`
   rewrite is confirmed on the target plan.
 
-## 5. Current schema (migration 0001)
+## 5. Current schema (migrations 0001–0003)
 
-`schools`, `users`, `user_roles`, `sessions`, `login_attempts`, `audit_events`, `academic_years`, `terms`, `jobs`,
-`app_meta`, plus Kysely's `schema_migrations` tables.
+- **0001 foundation:** `schools`, `users`, `user_roles`, `sessions`, `login_attempts`, `audit_events`, `academic_years`,
+  `terms`, `jobs`, `app_meta`, plus Kysely's `schema_migrations` tables.
+- **0002 academic structure:** `grades`, `subjects` (optional `name_si`/`name_ta`), `grade_subjects`, `rooms`,
+  `class_sections` (per year + grade, optional medium and home room), `period_definitions` (one bell schedule),
+  `calendar_events` (holiday / term_break / exam / event, `is_school_day`).
+- **0003:** adds 0001's foreign keys. 0001 declared them inline (`.references()`), which **MySQL silently ignores**
+  (MariaDB honours them, so 0003 skips existing keys). Always use `.addForeignKeyConstraint()`; ESLint rejects
+  `.references()` in migrations and a schema test fails if any `*_id`/`*_by` column lacks a foreign key.
+
+Deletes are `RESTRICT` while referenced and surface as `409 errors.inUse`; the error plugin maps MySQL/MariaDB
+duplicate / in-use / bad-reference / check errors (`fromDbError`) so races still produce clean API errors.
+
+### Academic structure API (`modules/academic/`)
+
+| Resource | Endpoints | Rules |
+|---|---|---|
+| Academic years | `GET/POST /academic-years`, `GET/PATCH/DELETE /academic-years/:id`, `POST /academic-years/:id/current` | Unique label; one current year; dates cannot shrink past its terms/events |
+| Terms | `GET/POST /academic-years/:id/terms`, `PATCH/DELETE /terms/:id` | Inside the year; no overlap; unique sequence (year row locked while checking) |
+| Grades | `GET/POST /grades`, `PATCH/DELETE /grades/:id`, `GET/PUT /grades/:id/subjects` | Unique name and level; PUT replaces the subject list |
+| Subjects, rooms | `GET/POST /subjects`, `PATCH/DELETE /subjects/:id`; same for `/rooms` | Unique code / name; retire with `isActive: false` |
+| Class sections | `GET /class-sections?academicYearId&gradeId`, `POST`, `GET/PATCH/DELETE /class-sections/:id` | Unique per year+grade; active grade and room only; year/grade fixed after creation |
+| Periods | `GET/POST /periods`, `PATCH/DELETE /periods/:id` | `HH:MM`; no overlapping times; unique sequence |
+| Calendar | `GET /calendar-events?from&to&academicYearId`, `POST`, `PATCH/DELETE /calendar-events/:id` | Inside its year when linked; inclusive dates |
+
+Reads need `academic.structure.read`, writes `academic.structure.manage`. Every write is audited in the same transaction
+with field names only. Deletes return `204`. Request schemas live in `@sms/shared` (`schemas/academic.ts`).
 
 ## 6. Known gaps (tracked in backlog.md)
 

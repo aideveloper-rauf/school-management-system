@@ -29,7 +29,7 @@ npm run build               # production build of shared, api (dist/) and web (d
   (class/subject assignment, guardian–student link). Return `NOT_FOUND` for out-of-scope records.
 - Validate every input with zod at the route boundary. Use transactions for multi-step writes.
 - Audit sensitive actions with `recordAudit` inside the same transaction. Never put passwords, tokens or free-text personal data in audit metadata or logs.
-- Schema changes = a new file in `apps/api/src/db/migrations/` registered in `migrations/index.ts`. Never edit a released migration. Expand-and-contract only.
+- Schema changes = a new file in `apps/api/src/db/migrations/` registered in `migrations/index.ts`. Never edit a released migration. Expand-and-contract only. Declare foreign keys with `.addForeignKeyConstraint()` — MySQL ignores inline `.references()`.
 - No hard-coded user-facing strings: add keys to `apps/web/src/i18n/locales/en.json` (si/ta fall back to English until translated). API error messages are translation keys (`errors.*`).
 - Results publication creates versioned snapshots; never overwrite released results.
 - AI features stay off (`FEATURE_AI=false`) and must not receive identifying student data.
