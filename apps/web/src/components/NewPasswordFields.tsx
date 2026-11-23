@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Field, TextInput } from './ui';
+import { Check } from 'lucide-react';
+import { Field, PasswordInput } from './ui';
 
 export const MIN_PASSWORD_LENGTH = 10;
 
@@ -27,34 +28,43 @@ export function NewPasswordFields({
 }) {
   const { t } = useTranslation();
   const mismatch = showMismatch && confirm.length > 0 && password !== confirm;
+  const longEnough = password.length >= MIN_PASSWORD_LENGTH;
+  const toggle = { showLabel: t('common.showPassword'), hideLabel: t('common.hidePassword') };
   return (
     <>
-      <Field label={t('account.newPassword')} hint={t('account.passwordHint', { min: MIN_PASSWORD_LENGTH })} error={serverError}>
-        {(id, d) => (
-          <TextInput
-            id={id}
-            aria-describedby={d}
-            aria-invalid={!!serverError || undefined}
-            type="password"
-            autoComplete="new-password"
-            minLength={MIN_PASSWORD_LENGTH}
-            required
-            value={password}
-            onChange={(e) => onPassword(e.target.value)}
-          />
+      <Field label={t('account.newPassword')} error={serverError}>
+        {(id, d, invalid) => (
+          <>
+            <PasswordInput
+              id={id}
+              aria-describedby={d}
+              aria-invalid={invalid || undefined}
+              autoComplete="new-password"
+              minLength={MIN_PASSWORD_LENGTH}
+              required
+              value={password}
+              onChange={(e) => onPassword(e.target.value)}
+              {...toggle}
+            />
+            {/* Live requirement check instead of a rule the user has to remember. */}
+            <p className={`mt-1.5 flex items-center gap-1.5 text-xs ${longEnough ? 'text-ok' : 'text-fg-muted'}`}>
+              <Check aria-hidden className={`size-3.5 ${longEnough ? '' : 'opacity-30'}`} />
+              {t('account.passwordHint', { min: MIN_PASSWORD_LENGTH })}
+            </p>
+          </>
         )}
       </Field>
       <Field label={t('account.confirmPassword')} error={mismatch ? t('account.passwordsDoNotMatch') : undefined}>
-        {(id, d) => (
-          <TextInput
+        {(id, d, invalid) => (
+          <PasswordInput
             id={id}
             aria-describedby={d}
-            aria-invalid={mismatch || undefined}
-            type="password"
+            aria-invalid={invalid || undefined}
             autoComplete="new-password"
             required
             value={confirm}
             onChange={(e) => onConfirm(e.target.value)}
+            {...toggle}
           />
         )}
       </Field>

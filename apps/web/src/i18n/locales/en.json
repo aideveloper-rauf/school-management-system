@@ -1,6 +1,13 @@
 {
-  "app": { "name": "School Management System" },
-  "language": { "label": "Language", "en": "English", "si": "සිංහල", "ta": "தமிழ்" },
+  "app": {
+    "name": "School Management System"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "si": "සිංහල",
+    "ta": "தமிழ்"
+  },
   "auth": {
     "title": "Sign in",
     "identifier": "Email or username",
@@ -8,7 +15,9 @@
     "submit": "Sign in",
     "signingIn": "Signing in…",
     "logout": "Sign out",
-    "forgotPassword": "Forgot your password?"
+    "forgotPassword": "Forgot your password?",
+    "intro": "Welcome back. Sign in with the email or username your school gave you.",
+    "helpText": "Trouble signing in? Your school office can reset your account."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -27,7 +36,45 @@
   "dashboard": {
     "welcome": "Welcome, {{name}}",
     "roles": "Signed in as: {{roles}}",
-    "comingSoon": "This section is part of the build plan and is not available yet."
+    "goodMorning": "Good morning, {{name}}",
+    "goodAfternoon": "Good afternoon, {{name}}",
+    "goodEvening": "Good evening, {{name}}",
+    "activeUsers": "Active users",
+    "pendingInvites": "Pending invitations",
+    "classesThisYear": "Classes this year",
+    "grades": "Grades in use",
+    "schoolYear": "School year",
+    "noCurrentYear": "No current school year",
+    "noCurrentYearHelp": "Add the school year and mark it as current to see term progress here.",
+    "goToYears": "Set up the school year",
+    "noTermToday": "No term is in session today.",
+    "betweenTerms": "Between terms. {{term}} starts on {{date}}.",
+    "daysLeft_one": "{{count}} day left",
+    "daysLeft_other": "{{count}} days left",
+    "percentDone": "{{pct}}% complete",
+    "quickActions": "Quick actions",
+    "manageClasses": "Manage classes",
+    "editCalendar": "Edit school calendar",
+    "upcoming": "Coming up",
+    "viewCalendar": "View calendar",
+    "noUpcoming": "Nothing on the calendar for the next 60 days.",
+    "until": "until {{date}}",
+    "signedInAs": "Signed in as {{roles}}",
+    "memberIntro": "Your school is setting things up. Sections in the menu open as soon as they are ready.",
+    "setup": {
+      "title": "Get your school ready",
+      "progress": "{{done}} of {{total}} steps done",
+      "done": "Done",
+      "todo": "To do",
+      "year": "Add the school year",
+      "current": "Mark the current year",
+      "terms": "Add the terms",
+      "grades": "Add grades",
+      "subjects": "Add subjects",
+      "classes": "Create classes for this year",
+      "periods": "Set up the bell schedule",
+      "staff": "Add staff accounts"
+    }
   },
   "roles": {
     "school_admin": "School administrator",
@@ -52,7 +99,11 @@
     "saveNewPassword": "Save new password",
     "passwordChanged": "Your password has been changed.",
     "forcedTitle": "Choose your own password",
-    "forcedIntro": "You signed in with a temporary password from the school. Choose a new one to continue."
+    "forcedIntro": "Hi {{name}}, you signed in with a temporary password from the school. Choose your own password to continue.",
+    "intro": "Your profile, password and language.",
+    "notYou": "Not you? Sign out",
+    "languageTitle": "Language",
+    "languageHelp": "Used on this device. Your school administrator can change your default."
   },
   "reset": {
     "requestTitle": "Reset your password",
@@ -65,14 +116,18 @@
     "chooseTitle": "Choose a new password",
     "save": "Save password",
     "done": "Your password has been changed. You can sign in with it now.",
-    "requestNewLink": "Send a new reset link"
+    "requestNewLink": "Send a new reset link",
+    "checkEmail": "Check your email",
+    "chooseIntro": "Choose a password you have not used for this account before.",
+    "doneTitle": "Password changed"
   },
   "invite": {
     "title": "Set up your account",
     "intro": "Choose a password for your school account.",
     "activate": "Save password and activate",
     "done": "Your account is ready. Sign in with your email address and the password you chose.",
-    "askAdmin": "Ask the school office to send you a new invitation."
+    "askAdmin": "Ask the school office to send you a new invitation.",
+    "doneTitle": "Your account is ready"
   },
   "users": {
     "title": "Users & roles",
@@ -84,7 +139,11 @@
     "anyRole": "Any role",
     "status": "Status",
     "anyStatus": "Any status",
-    "statuses": { "active": "Active", "invited": "Invitation sent", "disabled": "Disabled" },
+    "statuses": {
+      "active": "Active",
+      "invited": "Invitation sent",
+      "disabled": "Disabled"
+    },
     "person": "Person",
     "roles": "Roles",
     "noRoles": "No roles",
@@ -124,7 +183,28 @@
     "disabled": "Account disabled.",
     "disabledHelp": "This account cannot sign in.",
     "enable": "Enable account",
-    "enabled": "Account enabled."
+    "enabled": "Account enabled.",
+    "addIntro": "Create an account and choose how the person signs in for the first time.",
+    "sectionPerson": "Person",
+    "languageHint": "Language of their emails and screens.",
+    "inviteNeedsEmail": "Needs an email address. Use a temporary password for usernames.",
+    "rolesIntro": "Roles decide what a person can see and do. You can change them later.",
+    "emptyHelp": "Start with staff accounts, then add students and parents.",
+    "openDetails": "View details",
+    "you": "you",
+    "never": "Never",
+    "created": "Created",
+    "tabDetails": "Details",
+    "tabSecurity": "Sign-in & security",
+    "passwordNotSet": "Not set yet (invitation pending)",
+    "passwordTemporary": "Temporary — must be changed at next sign-in",
+    "passwordOwn": "Chosen by the user",
+    "selfSecurityHint": "To change your own password, use Your account.",
+    "resend": "Resend",
+    "setPassword": "Set password",
+    "disableTitle": "Disable {{name}}?",
+    "disabledNamed": "{{name}} was disabled.",
+    "enabledNamed": "{{name}} can sign in again."
   },
   "academic": {
     "title": "Academic setup",
@@ -162,14 +242,19 @@
       "empty": "No academic years yet. Add the current school year to begin.",
       "labelHint": "For example 2027",
       "isCurrent": "Make this the current year",
-      "makeCurrent": "Make current"
+      "makeCurrent": "Make current",
+      "emptyHelp": "Add the current school year first; terms, classes and the calendar belong to a year.",
+      "isCurrentHint": "Screens across the system default to the current year.",
+      "nowCurrent": "{{year}} is now the current year."
     },
     "terms": {
       "title": "Terms",
       "intro": "Terms must fall inside the year and must not overlap.",
       "noun": "term",
       "empty": "No terms in this year yet.",
-      "sequenceHint": "1 for the first term, 2 for the second, and so on."
+      "sequenceHint": "1 for the first term, 2 for the second, and so on.",
+      "emptyHelp": "Add each term with its first and last day.",
+      "labelHint": "For example First term"
     },
     "grades": {
       "title": "Grades",
@@ -182,7 +267,13 @@
       "subjects": "Subjects",
       "subjectsFor": "Subjects for {{grade}}",
       "subjectsIntro": "Tick the subjects this grade takes. Mark a subject optional if students choose it.",
-      "optional": "Optional"
+      "optional": "Optional",
+      "emptyHelp": "Add the grades your school teaches, for example Grade 1 to Grade 13.",
+      "manageSubjects": "Manage subjects",
+      "noSubjectsYet": "Add subjects first (Subjects tab), then choose them here.",
+      "selectedCount_one": "{{count}} subject selected",
+      "selectedCount_other": "{{count}} subjects selected",
+      "subjectsSaved": "Subjects for {{grade}} saved."
     },
     "subjects": {
       "title": "Subjects",
@@ -193,7 +284,8 @@
       "codeHint": "Short and unique, for example MATH or SCI",
       "nameEn": "Name in English",
       "nameSi": "Name in Sinhala",
-      "nameTa": "Name in Tamil"
+      "nameTa": "Name in Tamil",
+      "emptyHelp": "Add each subject once; then choose which grades take it."
     },
     "classes": {
       "title": "Classes",
@@ -205,13 +297,16 @@
       "sectionName": "Section",
       "sectionNameHint": "For example A, B or Science",
       "medium": "Medium",
-      "homeRoom": "Home room"
+      "homeRoom": "Home room",
+      "emptyHelp": "Create the sections of each grade for this year, such as 6 A and 6 B."
     },
     "rooms": {
       "title": "Rooms",
       "intro": "Classrooms, labs and halls used for classes and the timetable.",
       "noun": "room",
-      "empty": "No rooms yet."
+      "empty": "No rooms yet.",
+      "emptyHelp": "Add classrooms, labs and halls.",
+      "nameHint": "For example Room 12 or Science lab"
     },
     "periods": {
       "title": "Bell schedule",
@@ -222,7 +317,13 @@
       "startsAt": "Starts at",
       "endsAt": "Ends at",
       "isBreak": "This is a break (interval, lunch)",
-      "labelHint": "For example Period 1 or Interval"
+      "labelHint": "For example Period 1 or Interval",
+      "emptyHelp": "Add the periods and breaks of a school day in order.",
+      "break": "Break",
+      "duration": "Duration",
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes",
+      "sequenceHint": "Position in the day: 1 for the first period."
     },
     "calendar": {
       "title": "School calendar",
@@ -231,23 +332,43 @@
       "empty": "Nothing on the calendar for this year yet.",
       "event": "Event",
       "kind": "Type",
-      "kinds": { "holiday": "Holiday", "term_break": "Term break", "exam": "Exams", "event": "Event" },
+      "kinds": {
+        "holiday": "Holiday",
+        "term_break": "Term break",
+        "exam": "Exams",
+        "event": "Event"
+      },
       "schoolDay": "School day",
       "closed": "School closed",
       "isSchoolDay": "Classes are held on these days",
       "endsOnInclusive": "Last day",
-      "yearHint": "Leave empty for an event outside the school year."
-    }
+      "yearHint": "Leave empty for an event outside the school year.",
+      "emptyHelp": "Add holidays, term breaks and exam weeks so everyone plans around them.",
+      "firstDay": "First day",
+      "isSchoolDayHint": "Untick for holidays and closures; attendance is not expected on those days."
+    },
+    "length": "Length",
+    "weeks_one": "{{count}} week",
+    "weeks_other": "{{count}} weeks",
+    "inUseHint": "Untick to retire it without deleting history."
   },
   "settings": {
     "title": "School settings",
     "intro": "How the school's name appears across the system.",
     "name": "School name",
     "shortName": "Short name",
-    "shortNameHint": "Optional, for narrow screens and printouts",
+    "shortNameHint": "Used where space is tight, such as phone screens and printouts.",
     "defaultLanguage": "Default language",
     "timezone": "Time zone",
-    "timezoneHint": "Asia/Colombo for Sri Lanka"
+    "timezoneHint": "Asia/Colombo for Sri Lanka",
+    "profileTitle": "School profile",
+    "profileHelp": "How the school is named on screens, emails and printouts.",
+    "regionalTitle": "Language and time",
+    "regionalHelp": "Defaults for new users and for dates and times.",
+    "defaultLanguageHint": "New users start in this language; each person can change theirs.",
+    "readOnly": "You can view these settings. Only administrators can change them.",
+    "unsaved": "You have unsaved changes.",
+    "saved": "School settings saved."
   },
   "crud": {
     "add": "Add {{noun}}",
@@ -258,7 +379,13 @@
     "deleteConfirm": "Delete this {{noun}}? This cannot be undone.",
     "actions": "Actions",
     "none": "None",
-    "choose": "Choose…"
+    "choose": "Choose…",
+    "created": "{{noun}} added.",
+    "deleted": "{{noun}} deleted.",
+    "deleteTitle": "Delete this {{noun}}?",
+    "filter": "Filter {{title}}",
+    "filterPlaceholder": "Quick filter…",
+    "noMatches": "Nothing matches this filter."
   },
   "errors": {
     "invalidCredentials": "The email/username or password is incorrect.",
@@ -297,6 +424,54 @@
     "next": "Next",
     "menu": "Menu",
     "mainNavigation": "Main",
-    "yes": "Yes"
+    "yes": "Yes",
+    "breadcrumb": "Breadcrumb",
+    "sidebar": "Sidebar",
+    "skipToContent": "Skip to content",
+    "openMenu": "Open menu",
+    "accountMenu": "Account menu",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar",
+    "soon": "Soon",
+    "discard": "Discard",
+    "optional": "Optional",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "noAccessHelp": "Your role does not include this section. Ask your school administrator if you need it.",
+    "notFoundHelp": "The link may be old or mistyped.",
+    "offlineTitle": "Can’t reach the school server",
+    "offlineBody": "Check your internet connection. Nothing has been lost; try again in a moment.",
+    "retry": "Try again"
+  },
+  "public": {
+    "tagline": "Classes, attendance, exams and results for your whole school, in one place.",
+    "factData": "Your school's data stays in your school's own installation.",
+    "factLanguages": "Works in English, සිංහල and தமிழ்.",
+    "factDevices": "Designed for phones and slow connections."
+  },
+  "navGroups": {
+    "overview": "Overview",
+    "teaching": "Teaching & learning",
+    "administration": "Administration"
+  },
+  "roleHelp": {
+    "school_admin": "Manages users, roles, school settings and academic setup.",
+    "principal": "Oversees the school; approves and publishes results.",
+    "academic_coordinator": "Plans grades and subjects; moderates marks.",
+    "teacher": "Takes attendance and enters marks for assigned classes.",
+    "registrar": "Maintains student records and parent links.",
+    "student": "Sees their own timetable, work and released results.",
+    "guardian": "Sees their own children's attendance and released results."
+  },
+  "table": {
+    "range": "{{from}}–{{to}} of {{total}}",
+    "rowsPerPage": "Rows per page",
+    "pageOf": "Page {{page}} of {{pages}}",
+    "clearFilters": "Clear filters",
+    "tryOtherFilters": "Try a different search or clear the filters."
+  },
+  "placeholder": {
+    "title": "This section is on its way",
+    "body": "It is part of the school's build plan and is not available yet. Everything you see in the menu without a Soon label is ready to use."
   }
 }

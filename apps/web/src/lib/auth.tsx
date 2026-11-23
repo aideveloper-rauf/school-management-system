@@ -11,6 +11,10 @@ interface AuthState {
    * return target, so the next person on a shared device does not land on the previous user's page.
    */
   signedOut: boolean;
+  /** The session check failed for a reason other than "not signed in" (offline, server down). */
+  unreachable: boolean;
+  /** Try the session check again. */
+  retry: () => void;
   login: (req: LoginRequest) => Promise<void>;
   logout: () => Promise<void>;
   /** Re-read the session (e.g. after a password change clears mustChangePassword). */
@@ -25,6 +29,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<SessionResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [signedOut, setSignedOut] = useState(false);
+  const [unreachable, setUnreachable] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   const apply = useCallback((s: SessionResponse | null) => {
     setSession(s);
@@ -34,11 +40,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const ctrl = new AbortController();
+    setUnreachable(false);
     api<SessionResponse>('/auth/session', { signal: ctrl.signal })
       .then(apply)
       .catch((e) => {
         if (ctrl.signal.aborted) return;
-        if (!(e instanceof ApiError) || e.status !== 401) console.warn('session check failed');
+        // Only a 401 means "not signed in". A network failure or server error must not look like
+        // a sign-out on a flaky connection: show "can't reach the server" with Retry instead.
+        if (!(e instanceof ApiError) || e.status !== 401) setUnreachable(true);
       })
       // An aborted check (unmount, React StrictMode re-run) must not end "loading": that would
       // briefly treat the user as signed out and bounce a deep link through /login to /.
@@ -46,13 +55,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!ctrl.signal.aborted) setLoading(false);
       });
     return () => ctrl.abort();
-  }, [apply]);
+  }, [apply, attempt]);
 
   const value = useMemo<AuthState>(
     () => ({
       session,
       loading,
       signedOut,
+      unreachable,
+      retry: () => {
+        setLoading(true);
+        setAttempt((a) => a + 1);
+      },
       login: async (req) => {
         apply(await api<SessionResponse>('/auth/login', { method: 'POST', body: req }));
         setSignedOut(false);
@@ -69,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refresh: async () => apply(await api<SessionResponse>('/auth/session')),
       can: (p) => Boolean(session?.permissions.includes(p)),
     }),
-    [session, loading, signedOut, apply],
+    [session, loading, signedOut, unreachable, apply],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

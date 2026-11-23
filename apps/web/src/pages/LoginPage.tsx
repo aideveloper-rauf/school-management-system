@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../lib/auth';
 import { ApiError } from '../lib/api';
 import { PublicLayout } from '../components/PublicLayout';
-import { Alert, Button, Field, TextInput } from '../components/ui';
+import { Alert, Button, Field, Input, PasswordInput } from '../components/ui';
 
 export function LoginPage() {
   const { t } = useTranslation();
@@ -28,40 +28,53 @@ export function LoginPage() {
       await login({ identifier, password });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'errors.network');
+      setPassword('');
     } finally {
       setBusy(false);
-      setPassword('');
     }
   }
 
   return (
-    <PublicLayout title={t('auth.title')}>
-      <form onSubmit={onSubmit} className="space-y-4" noValidate>
+    <PublicLayout title={t('auth.title')} intro={t('auth.intro')}>
+      <form onSubmit={onSubmit} className="space-y-5" noValidate>
         {error && <Alert>{t(error)}</Alert>}
         <Field label={t('auth.identifier')}>
           {(id) => (
-            <TextInput id={id} autoComplete="username" required value={identifier} onChange={(e) => setIdentifier(e.target.value)} />
-          )}
-        </Field>
-        <Field label={t('auth.password')}>
-          {(id) => (
-            <TextInput
+            <Input
               id={id}
-              type="password"
-              autoComplete="current-password"
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
             />
           )}
         </Field>
+        <div className="space-y-1.5">
+          <div className="flex items-baseline justify-between">
+            <label htmlFor="login-password" className="text-[0.8125rem] font-medium">
+              {t('auth.password')}
+            </label>
+            <Link to="/reset-password" className="text-[0.8125rem] font-medium text-brand-600 hover:text-brand-700 hover:underline">
+              {t('auth.forgotPassword')}
+            </Link>
+          </div>
+          <PasswordInput
+            id="login-password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            showLabel={t('common.showPassword')}
+            hideLabel={t('common.hidePassword')}
+          />
+        </div>
         <Button type="submit" variant="primary" busy={busy} disabled={!identifier || !password} className="w-full">
           {busy ? t('auth.signingIn') : t('auth.submit')}
         </Button>
-        <Link to="/reset-password" className="block text-sm text-register underline">
-          {t('auth.forgotPassword')}
-        </Link>
       </form>
+      <p className="mt-8 text-[0.8125rem] text-fg-muted">{t('auth.helpText')}</p>
     </PublicLayout>
   );
 }

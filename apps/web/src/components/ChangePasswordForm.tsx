@@ -2,11 +2,19 @@ import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 import { useSubmit } from '../lib/data';
-import { Alert, Button, Field, TextInput } from './ui';
+import { Alert, Button, Field, PasswordInput } from './ui';
 import { NewPasswordFields, newPasswordProblem } from './NewPasswordFields';
 
 /** Change own password. Other devices are signed out by the API; this one stays signed in. */
-export function ChangePasswordForm({ onDone, submitLabel }: { onDone: () => void | Promise<void>; submitLabel: string }) {
+export function ChangePasswordForm({
+  onDone,
+  submitLabel,
+  fullWidth,
+}: {
+  onDone: () => void | Promise<void>;
+  submitLabel: string;
+  fullWidth?: boolean;
+}) {
   const { t } = useTranslation();
   const [current, setCurrent] = useState('');
   const [password, setPassword] = useState('');
@@ -29,19 +37,20 @@ export function ChangePasswordForm({ onDone, submitLabel }: { onDone: () => void
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-4">
+    <form onSubmit={onSubmit} noValidate className="space-y-5">
       {(problem || submit.error) && <Alert>{problem ?? submit.error}</Alert>}
       <Field label={t('account.currentPassword')} error={submit.fieldErrors.currentPassword}>
-        {(id, d) => (
-          <TextInput
+        {(id, d, invalid) => (
+          <PasswordInput
             id={id}
             aria-describedby={d}
-            aria-invalid={!!submit.fieldErrors.currentPassword || undefined}
-            type="password"
+            aria-invalid={invalid || undefined}
             autoComplete="current-password"
             required
             value={current}
             onChange={(e) => setCurrent(e.target.value)}
+            showLabel={t('common.showPassword')}
+            hideLabel={t('common.hidePassword')}
           />
         )}
       </Field>
@@ -53,7 +62,13 @@ export function ChangePasswordForm({ onDone, submitLabel }: { onDone: () => void
         serverError={submit.fieldErrors.newPassword}
         showMismatch
       />
-      <Button type="submit" variant="primary" busy={submit.busy} className="w-full sm:w-auto" disabled={!current || !password || !confirm}>
+      <Button
+        type="submit"
+        variant="primary"
+        busy={submit.busy}
+        className={fullWidth ? 'w-full' : ''}
+        disabled={!current || !password || !confirm}
+      >
         {submitLabel}
       </Button>
     </form>

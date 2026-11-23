@@ -1,11 +1,26 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Inbox, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useResource, useSubmit } from '../lib/data';
-import { Alert, Button, Checkbox, Dialog, EmptyState, Field, FormActions, Loading, SelectInput, TextInput } from './ui';
+import {
+  Alert,
+  Button,
+  Checkbox,
+  ConfirmDialog,
+  DataTable,
+  Drawer,
+  EmptyState,
+  Field,
+  Input,
+  Select,
+  useToast,
+  type Column,
+  type MenuItem,
+} from './ui';
 
 /**
- * Config-driven list + create/edit/delete for simple school configuration (grades, rooms, …).
+ * Config-driven list + create/edit/delete for school configuration (grades, rooms, …).
  * Forms hold string/boolean values and convert them to the API's types on submit; edits send
  * only changed fields (PATCH). The API validates everything again and is the source of truth.
  */
@@ -26,12 +41,14 @@ export interface FieldDef {
   /** Default for new items. */
   initial?: string | boolean;
   required?: boolean;
+  /** Lay out two short fields side by side. */
+  half?: boolean;
 }
 
 export interface ColumnDef<T> {
   label: string;
   render: (item: T) => ReactNode;
-  /** Hide on phones (secondary info). */
+  /** Secondary information: hidden on narrower desktop widths. */
   wide?: boolean;
 }
 
@@ -49,8 +66,10 @@ export function CrudSection<T extends { id: number }>({
   canManage,
   noun,
   emptyText,
+  emptyHelp,
   filters,
-  rowExtra,
+  extraActions,
+  searchText,
   onChanged,
 }: {
   title: string;
@@ -64,90 +83,119 @@ export function CrudSection<T extends { id: number }>({
   /** Existing item → form values (keys = field names). */
   toValues: (item: T) => Values;
   canManage: boolean;
-  /** Lower-case noun for button labels, already translated ("grade"). */
+  /** Lower-case noun for labels, already translated ("grade"). */
   noun: string;
   emptyText: string;
+  emptyHelp?: string;
+  /** Extra controls in the table toolbar (e.g. year filter). */
   filters?: ReactNode;
-  /** Extra per-row action (e.g. "Subjects" for a grade). */
-  rowExtra?: (item: T) => ReactNode;
+  /** Extra row actions (e.g. "Set as current"). */
+  extraActions?: (item: T) => MenuItem[];
+  /** Enables the quick filter box: text to match per row. */
+  searchText?: (item: T) => string;
   onChanged?: () => void;
 }) {
   const { t } = useTranslation();
+  const toast = useToast();
   const list = useResource<{ items: T[] }>(listPath);
   const [editing, setEditing] = useState<T | 'new' | null>(null);
+  const [deleting, setDeleting] = useState<T | null>(null);
+  const [filter, setFilter] = useState('');
+  const del = useSubmit();
+
+  const rows = useMemo(() => {
+    const items = list.data?.items ?? null;
+    if (!items || !searchText || !filter.trim()) return items;
+    const needle = filter.trim().toLowerCase();
+    return items.filter((i) => searchText(i).toLowerCase().includes(needle));
+  }, [list.data, filter, searchText]);
 
   const changed = () => {
-    setEditing(null);
     list.reload();
     onChanged?.();
   };
 
+  const tableColumns: Column<T>[] = columns.map((c, i) => ({
+    key: `${i}-${c.label}`,
+    header: c.label,
+    cell: c.render,
+    hideBelow: c.wide ? 'lg' : undefined,
+  }));
+
+  const rowActions =
+    canManage || extraActions
+      ? (item: T): MenuItem[] => [
+          ...(canManage ? [{ label: t('crud.edit'), icon: <Pencil className="size-4" />, onSelect: () => setEditing(item) }] : []),
+          ...(extraActions?.(item) ?? []),
+          ...(canManage
+            ? [{ label: t('crud.delete'), icon: <Trash2 className="size-4" />, danger: true, onSelect: () => setDeleting(item) }]
+            : []),
+        ]
+      : undefined;
+
+  const hasToolbar = !!(searchText || filters);
+  const filtered = !!filter.trim();
+
   return (
     <section aria-label={title} className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="max-w-2xl">
-          <h2 className="text-xl font-semibold">{title}</h2>
-          {intro && <p className="mt-1 text-sm text-ink-soft">{intro}</p>}
+        <div className="min-w-0 max-w-2xl">
+          <h2 className="text-base font-semibold">{title}</h2>
+          {intro && <p className="mt-0.5 text-[0.8125rem] text-fg-muted">{intro}</p>}
         </div>
         {canManage && listPath !== null && (
-          <Button variant="primary" onClick={() => setEditing('new')}>
+          <Button variant="primary" icon={<Plus className="size-4" />} onClick={() => setEditing('new')}>
             {t('crud.add', { noun })}
           </Button>
         )}
       </div>
-      {filters}
+
       {list.error && <Alert>{t(list.error.message)}</Alert>}
-      {listPath !== null && list.loading && !list.data && <Loading />}
-      {list.data && list.data.items.length === 0 && <EmptyState title={emptyText} />}
-      {list.data && list.data.items.length > 0 && (
-        // Phones: each row stacks into a labelled block with actions underneath (no hidden overflow).
-        <div className="overflow-x-auto rounded-md border border-rule bg-sheet">
-          <table className="w-full text-left text-sm">
-            <thead className="hidden border-b border-rule bg-paper text-ink-soft sm:table-header-group">
-              <tr>
-                {columns.map((c) => (
-                  <th key={c.label} scope="col" className={`px-4 py-2.5 font-medium ${c.wide ? 'hidden sm:table-cell' : ''}`}>
-                    {c.label}
-                  </th>
-                ))}
-                {(canManage || rowExtra) && (
-                  <th scope="col" className="px-4 py-2.5">
-                    <span className="sr-only">{t('crud.actions')}</span>
-                  </th>
-                )}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-rule">
-              {list.data.items.map((item) => (
-                <tr key={item.id} className="block px-4 py-3 sm:table-row sm:p-0">
-                  {columns.map((c, i) => (
-                    <td
-                      key={c.label}
-                      className={`py-0.5 align-top sm:px-4 sm:py-3 ${c.wide ? 'hidden sm:table-cell' : 'block sm:table-cell'}`}
-                    >
-                      {i > 0 && <span className="text-ink-soft sm:hidden">{c.label}: </span>}
-                      {c.render(item)}
-                    </td>
-                  ))}
-                  {(canManage || rowExtra) && (
-                    <td className="-ml-4 flex flex-wrap gap-1 pt-1 sm:ml-0 sm:table-cell sm:px-2 sm:py-2 sm:text-right sm:whitespace-nowrap">
-                      {rowExtra?.(item)}
-                      {canManage && (
-                        <Button variant="ghost" onClick={() => setEditing(item)}>
-                          {t('crud.edit')}
-                        </Button>
-                      )}
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+
+      <DataTable<T>
+        label={title}
+        columns={tableColumns}
+        rows={listPath === null ? [] : rows}
+        loading={listPath !== null && list.loading}
+        onRowClick={canManage ? (item) => setEditing(item) : undefined}
+        rowActions={rowActions}
+        toolbar={
+          hasToolbar ? (
+            <>
+              {searchText && (
+                <div className="min-w-[12rem] flex-1">
+                  <Input
+                    type="search"
+                    aria-label={t('crud.filter', { title })}
+                    placeholder={t('crud.filterPlaceholder')}
+                    leading={<Search className="size-4" />}
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
+                  />
+                </div>
+              )}
+              {filters}
+            </>
+          ) : undefined
+        }
+        empty={
+          <EmptyState
+            icon={filtered ? <Search className="size-5" /> : <Inbox className="size-5" />}
+            title={filtered ? t('crud.noMatches') : emptyText}
+            description={filtered ? t('table.tryOtherFilters') : emptyHelp}
+            action={
+              canManage && !filtered && listPath !== null ? (
+                <Button variant="primary" icon={<Plus className="size-4" />} onClick={() => setEditing('new')}>
+                  {t('crud.add', { noun })}
+                </Button>
+              ) : undefined
+            }
+          />
+        }
+      />
 
       {editing !== null && (
-        <CrudDialog
+        <CrudDrawer
           title={editing === 'new' ? t('crud.addTitle', { noun }) : t('crud.editTitle', { noun })}
           fields={editing === 'new' ? fields : fields.filter((f) => !f.createOnly)}
           initial={editing === 'new' ? initialValues(fields) : toValues(editing)}
@@ -155,9 +203,38 @@ export function CrudSection<T extends { id: number }>({
           mode={editing === 'new' ? 'create' : 'edit'}
           noun={noun}
           onClose={() => setEditing(null)}
-          onDone={changed}
+          onDone={(msg) => {
+            setEditing(null);
+            toast.success(msg);
+            changed();
+          }}
         />
       )}
+
+      <ConfirmDialog
+        open={deleting !== null}
+        title={t('crud.deleteTitle', { noun })}
+        body={t('crud.deleteConfirm', { noun })}
+        confirmLabel={t('crud.delete')}
+        busy={del.busy}
+        error={del.error}
+        onClose={() => {
+          setDeleting(null);
+          del.reset();
+        }}
+        onConfirm={async () => {
+          if (!deleting) return;
+          const ok = await del.run(async () => {
+            await api(itemPath(deleting.id), { method: 'DELETE' });
+            return true;
+          });
+          if (ok) {
+            setDeleting(null);
+            toast.success(t('crud.deleted', { noun }));
+            changed();
+          }
+        }}
+      />
     </section>
   );
 }
@@ -181,7 +258,7 @@ function toBody(fields: FieldDef[], values: Values, initial: Values, mode: 'crea
   return body;
 }
 
-function CrudDialog({
+function CrudDrawer({
   title,
   fields,
   initial,
@@ -198,96 +275,102 @@ function CrudDialog({
   mode: 'create' | 'edit';
   noun: string;
   onClose: () => void;
-  onDone: () => void;
+  onDone: (message: string) => void;
 }) {
   const { t } = useTranslation();
   const [values, setValues] = useState<Values>(initial);
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const submit = useSubmit();
   const set = (name: string, v: string | boolean) => setValues((cur) => ({ ...cur, [name]: v }));
   const dirty = fields.some((f) => values[f.name] !== initial[f.name]);
+  const missing = fields.some((f) => f.required && f.type !== 'checkbox' && values[f.name] === '');
+  const formId = 'crud-form';
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     const body = toBody(fields, values, initial, mode);
     const ok = await submit.run(() => api(path, { method: mode === 'create' ? 'POST' : 'PATCH', body }));
-    if (ok !== undefined) onDone();
+    if (ok !== undefined) onDone(mode === 'create' ? t('crud.created', { noun }) : t('common.saved'));
   }
 
-  async function onDelete() {
-    // DELETE returns 204 → api() resolves undefined, so use a sentinel to detect success.
-    const ok = await submit.run(async () => {
-      await api(path, { method: 'DELETE' });
-      return true;
-    });
-    if (ok) onDone();
-  }
+  const text = fields.filter((f) => f.type !== 'checkbox');
+  const checks = fields.filter((f) => f.type === 'checkbox');
 
   return (
-    <Dialog open title={title} onClose={onClose}>
-      <form onSubmit={onSubmit} noValidate className="space-y-4">
-        {submit.error && <Alert>{submit.error}</Alert>}
-        {fields.map((f) =>
-          f.type === 'checkbox' ? (
-            <Checkbox key={f.name} label={f.label} checked={Boolean(values[f.name])} onChange={(e) => set(f.name, e.target.checked)} />
-          ) : (
-            <Field key={f.name} label={f.label} hint={f.hint} error={submit.fieldErrors[f.name]}>
-              {(id, d) =>
-                f.type === 'select' ? (
-                  <SelectInput
-                    id={id}
-                    aria-describedby={d}
-                    value={String(values[f.name] ?? '')}
-                    onChange={(e) => set(f.name, e.target.value)}
-                  >
-                    {(f.nullable || !f.required) && <option value="">{t('crud.none')}</option>}
-                    {f.required && !f.nullable && values[f.name] === '' && <option value="">{t('crud.choose')}</option>}
-                    {f.options?.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </SelectInput>
-                ) : (
-                  <TextInput
-                    id={id}
-                    aria-describedby={d}
-                    aria-invalid={!!submit.fieldErrors[f.name] || undefined}
-                    type={f.type}
-                    inputMode={f.type === 'number' ? 'numeric' : undefined}
-                    value={String(values[f.name] ?? '')}
-                    onChange={(e) => set(f.name, e.target.value)}
-                  />
-                )
-              }
-            </Field>
-          ),
-        )}
-
-        {mode === 'edit' && confirmDelete && (
-          <div className="rounded-md border border-maroon/40 bg-maroon-soft p-3 text-sm">
-            <p className="mb-3 text-maroon">{t('crud.deleteConfirm', { noun })}</p>
-            <div className="flex gap-2">
-              <Button onClick={() => setConfirmDelete(false)}>{t('common.cancel')}</Button>
-              <Button variant="danger" busy={submit.busy} onClick={() => void onDelete()}>
-                {t('crud.delete')}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        <FormActions>
-          {mode === 'edit' && !confirmDelete && (
-            <Button variant="danger" className="mr-auto" onClick={() => setConfirmDelete(true)}>
-              {t('crud.delete')}
-            </Button>
-          )}
+    <Drawer
+      open
+      title={title}
+      onClose={onClose}
+      footer={
+        <>
           <Button onClick={onClose}>{t('common.cancel')}</Button>
-          <Button type="submit" variant="primary" busy={submit.busy} disabled={mode === 'edit' && !dirty}>
+          <Button type="submit" form={formId} variant="primary" busy={submit.busy} disabled={(mode === 'edit' && !dirty) || missing}>
             {mode === 'create' ? t('crud.add', { noun }) : t('common.saveChanges')}
           </Button>
-        </FormActions>
+        </>
+      }
+    >
+      <form id={formId} onSubmit={onSubmit} noValidate className="space-y-5">
+        {submit.error && <Alert>{submit.error}</Alert>}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-5">
+          {text.map((f) => (
+            <div key={f.name} className={f.half ? 'col-span-2 sm:col-span-1' : 'col-span-2'}>
+              <Field
+                label={f.label}
+                hint={f.hint}
+                error={submit.fieldErrors[f.name]}
+                optional={!f.required && f.nullable ? t('common.optional') : undefined}
+              >
+                {(id, d, invalid) =>
+                  f.type === 'select' ? (
+                    <Select
+                      id={id}
+                      aria-describedby={d}
+                      aria-invalid={invalid || undefined}
+                      value={String(values[f.name] ?? '')}
+                      onChange={(e) => set(f.name, e.target.value)}
+                    >
+                      {!f.required && <option value="">{t('crud.none')}</option>}
+                      {f.required && values[f.name] === '' && (
+                        <option value="" disabled>
+                          {t('crud.choose')}
+                        </option>
+                      )}
+                      {f.options?.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </Select>
+                  ) : (
+                    <Input
+                      id={id}
+                      aria-describedby={d}
+                      aria-invalid={invalid || undefined}
+                      type={f.type}
+                      inputMode={f.type === 'number' ? 'numeric' : undefined}
+                      value={String(values[f.name] ?? '')}
+                      onChange={(e) => set(f.name, e.target.value)}
+                    />
+                  )
+                }
+              </Field>
+            </div>
+          ))}
+        </div>
+        {checks.length > 0 && (
+          <div className="rounded-lg border border-line px-3.5 py-1">
+            {checks.map((f) => (
+              <Checkbox
+                key={f.name}
+                label={f.label}
+                description={f.hint}
+                checked={Boolean(values[f.name])}
+                onChange={(e) => set(f.name, e.target.checked)}
+              />
+            ))}
+          </div>
+        )}
       </form>
-    </Dialog>
+    </Drawer>
   );
 }

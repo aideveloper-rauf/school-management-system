@@ -1,14 +1,22 @@
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import { Compass } from 'lucide-react';
+import { Card, EmptyState } from '../components/ui';
 
 export function NotFoundPage() {
   const { t } = useTranslation();
   return (
-    <section className="space-y-3">
-      <h1 className="text-2xl font-semibold">{t('common.notFoundPage')}</h1>
-      <Link to="/" className="text-brand-700 underline">
-        {t('common.backHome')}
-      </Link>
-    </section>
+    <Card>
+      <EmptyState
+        icon={<Compass className="size-5" />}
+        title={t('common.notFoundPage')}
+        description={t('common.notFoundHelp')}
+        action={
+          <Link to="/" className="text-sm font-medium text-brand-600 hover:underline">
+            {t('common.backHome')}
+          </Link>
+        }
+      />
+    </Card>
   );
 }

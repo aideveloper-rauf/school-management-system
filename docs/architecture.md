@@ -111,20 +111,29 @@ removes expired sessions and old login attempts.
 - `lib/api.ts` — same-origin fetch wrapper; adds CSRF header on unsafe methods; throws `ApiError` with the server code;
   `204` resolves to `undefined`.
 - `lib/auth.tsx` — session context (`/auth/session` on load), `can(permission)` for UI hints only, `refresh()`,
-  `signedOut` (explicit sign-out drops the return-to-page target so a shared device does not reopen the last user's page).
+  `signedOut` (explicit sign-out drops the return-to-page target so a shared device does not reopen the last user's page),
+  `unreachable` + `retry()` (a network/server failure shows "can't reach the server" instead of looking like a sign-out).
 - `lib/data.ts` — `useResource(path)` (GET + reload, abort-safe) and `useSubmit()` (busy state, translated error,
-  per-field errors from `details`). `lib/format.ts` — locale-aware date helpers.
-- `routes/` — `RequireAuth` (redirects to sign-in with a return target; shows only the forced password change while
+  per-field errors from `details`). `lib/format.ts` — locale-aware dates, relative times, calendar-date maths.
+- `routes/` — `RequireAuth` (sign-in redirect with a return target; offline screen; forced password change while
   `mustChangePassword`), `RequirePermission` (hides screens outside the user's menu — UX only, the API enforces),
-  `nav.ts` (role-aware menu). `App.tsx` lazy-loads every page.
-- `components/ui.tsx` — small kit on native elements (`<dialog>` as a bottom sheet on phones, labelled `Field`,
-  buttons, alerts). `components/CrudSection.tsx` — config-driven list + create/edit/delete used by the academic setup
-  tabs (PATCH sends only changed fields; rows stack into labelled blocks on phones).
-- Screens: sign in, reset password (`/#/reset-password[?token]`), accept invitation (`/#/accept-invite?token`), account
-  (change password), users & roles, academic setup (years/terms, grades + subjects, subjects, classes, rooms, bell
-  schedule, calendar; tab in `?tab=`), school settings.
-- Visual system ("school register"): paper `#f6f7f4`, ink `#1f2a44`, register green `#2f6b4f`, spine `#24513d`,
-  maroon `#8a2335` for destructive/warning only. No web fonts or icon library (system Noto stack covers si/ta).
+  `nav.ts` (menu grouped by area, icons, `soon` flag for unbuilt sections). `App.tsx` lazy-loads every page.
+- `components/ui/` — design-system components: `Button`/`IconButton`, form controls (`Field`, `Input`, `PasswordInput`,
+  `Select`, `Checkbox`, `RadioCard`, `FormSection`), feedback (`Alert`, `Badge`, `Skeleton`, `EmptyState`), layout
+  (`PageHeader` with breadcrumbs, `Card`, `Tabs`, `Avatar`, `DescriptionList`), overlays (`Drawer` side sheet,
+  `ConfirmDialog`, `DropdownMenu` — portalled, keyboard-navigable), `ToastProvider`/`useToast`, `DataTable` (sticky header,
+  row click, row action menu, skeleton rows, phone card layout) and `Pagination`. `components/CrudSection.tsx` builds
+  the academic setup tabs on these (quick filter, drawer forms, confirm-to-delete, toasts).
+- Shell: collapsible icon sidebar (remembered per device) grouped by area; top bar with language picker and user menu;
+  off-canvas menu on phones; skip link. Sign-in pages are split-screen with the school's name from the public
+  `GET /school/branding` (name and short name only).
+- Screens: dashboard (key numbers, current term progress, upcoming calendar events, setup checklist, quick actions —
+  each part fetched only if the role allows it), sign in, reset password (`/#/reset-password[?token]`), accept invitation
+  (`/#/accept-invite?token`), account, users & roles (table + drawer with Details / Roles / Sign-in & security tabs),
+  academic setup (tab in `?tab=`), school settings (sectioned form + unsaved-changes bar).
+- Visual system: neutral greys, one brand blue scale (`--color-brand-*` in `index.css` — the only thing to change to
+  re-theme), semantic ok/warn/danger colours, 14px base type, system fonts (Noto fallbacks cover si/ta), Lucide icons
+  (tree-shaken per icon). First load for an admin is ~123 kB gzipped; other screens load on demand.
 - Bundle rule: the web app may import only zod-free modules from `@sms/shared` at runtime (`roles`, `locales`,
   `constants`, `api`); a test guards `constants.ts`. `npm run lint` also fails on literal `t('…')` keys missing from
   `en.json` (`scripts/check-i18n.mjs`).

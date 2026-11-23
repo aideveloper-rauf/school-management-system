@@ -69,6 +69,14 @@ describe('login → session → logout (real MySQL)', () => {
     expect(after.statusCode).toBe(401);
   });
 
+  it('exposes only the school name publicly for the sign-in page', async () => {
+    const res = await app.inject({ method: 'GET', url: '/api/v1/school/branding' });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ name: 'Test School', shortName: null });
+    // The full settings still require a session.
+    expect((await app.inject({ method: 'GET', url: '/api/v1/school' })).statusCode).toBe(401);
+  });
+
   it('issues a new session token on every login', async () => {
     const a = await login('admin@test.lk');
     const b = await login('admin@test.lk');

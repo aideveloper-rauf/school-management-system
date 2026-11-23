@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import { BellRing, BookOpen, CalendarCheck, CalendarDays, CalendarRange, DoorOpen, GraduationCap, Layers, ListChecks } from 'lucide-react';
 import { CALENDAR_EVENT_KINDS, LOCALES } from '@sms/shared';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { query, useResource, useSubmit } from '../../lib/data';
-import { formatDate } from '../../lib/format';
+import { daysBetween, formatDate } from '../../lib/format';
 import { CrudSection } from '../../components/CrudSection';
-import { Alert, Button, Checkbox, Dialog, Field, FormActions, Loading, PageHeader, SelectInput, StatusBadge } from '../../components/ui';
+import { Alert, Badge, Button, Checkbox, Drawer, Loading, PageHeader, Select, Tabs, useToast } from '../../components/ui';
 
 interface Year {
   id: number;
@@ -72,6 +73,15 @@ interface CalendarEvent {
 
 const TABS = ['years', 'grades', 'subjects', 'classes', 'rooms', 'periods', 'calendar'] as const;
 type Tab = (typeof TABS)[number];
+const TAB_ICONS: Record<Tab, typeof CalendarRange> = {
+  years: CalendarRange,
+  grades: GraduationCap,
+  subjects: BookOpen,
+  classes: Layers,
+  rooms: DoorOpen,
+  periods: BellRing,
+  calendar: CalendarDays,
+};
 
 const str = (v: number | null | undefined) => (v === null || v === undefined ? '' : String(v));
 
@@ -82,37 +92,31 @@ export default function AcademicPage() {
 
   return (
     <>
-      <PageHeader title={t('academic.title')} intro={t('academic.intro')} />
-      {/* Index tabs along the page edge, like the dividers in a register. */}
-      <nav aria-label={t('academic.sections')} className="-mt-2 mb-6 overflow-x-auto">
-        <ul className="flex min-w-max gap-1 border-b border-rule">
-          {TABS.map((k) => (
-            <li key={k}>
-              <button
-                type="button"
-                aria-current={tab === k ? 'page' : undefined}
-                // Keep the selected tab visible in the scrollable strip on phones.
-                ref={tab === k ? (el) => el?.scrollIntoView({ block: 'nearest', inline: 'nearest' }) : undefined}
-                onClick={() => setParams({ tab: k }, { replace: true })}
-                className={`-mb-px rounded-t-md border px-4 py-2 text-sm ${
-                  tab === k
-                    ? 'border-rule border-b-sheet bg-sheet font-medium text-spine'
-                    : 'border-transparent text-ink-soft hover:text-ink'
-                }`}
-              >
-                {t(`academic.tabs.${k}`)}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
-      {tab === 'years' && <YearsTab />}
-      {tab === 'grades' && <GradesTab />}
-      {tab === 'subjects' && <SubjectsTab />}
-      {tab === 'classes' && <ClassesTab />}
-      {tab === 'rooms' && <RoomsTab />}
-      {tab === 'periods' && <PeriodsTab />}
-      {tab === 'calendar' && <CalendarTab />}
+      <PageHeader
+        crumbs={[{ label: t('nav.dashboard'), to: '/' }, { label: t('academic.title') }]}
+        title={t('academic.title')}
+        description={t('academic.intro')}
+      />
+      <div className="mb-6">
+        <Tabs
+          label={t('academic.sections')}
+          value={tab}
+          onChange={(k) => setParams({ tab: k }, { replace: true })}
+          items={TABS.map((k) => {
+            const Icon = TAB_ICONS[k];
+            return { key: k, label: t(`academic.tabs.${k}`), icon: <Icon className="size-4" /> };
+          })}
+        />
+      </div>
+      <div role="tabpanel" aria-label={t(`academic.tabs.${tab}`)}>
+        {tab === 'years' && <YearsTab />}
+        {tab === 'grades' && <GradesTab />}
+        {tab === 'subjects' && <SubjectsTab />}
+        {tab === 'classes' && <ClassesTab />}
+        {tab === 'rooms' && <RoomsTab />}
+        {tab === 'periods' && <PeriodsTab />}
+        {tab === 'calendar' && <CalendarTab />}
+      </div>
     </>
   );
 }
@@ -129,7 +133,7 @@ function useYears() {
   return { years: items, current, loading: years.loading, reload: years.reload };
 }
 
-function YearSelect({
+function YearFilter({
   years,
   value,
   onChange,
@@ -142,59 +146,62 @@ function YearSelect({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="max-w-xs">
-      <Field label={t('academic.year')}>
-        {(id) => (
-          <SelectInput id={id} value={value} onChange={(e) => onChange(e.target.value)}>
-            {allowAll && <option value="">{t('academic.allYears')}</option>}
-            {years.map((y) => (
-              <option key={y.id} value={y.id}>
-                {y.label}
-                {y.isCurrent ? ` (${t('academic.current')})` : ''}
-              </option>
-            ))}
-          </SelectInput>
-        )}
-      </Field>
-    </div>
+    <Select aria-label={t('academic.year')} className="w-full sm:w-48" value={value} onChange={(e) => onChange(e.target.value)}>
+      {allowAll && <option value="">{t('academic.allYears')}</option>}
+      {years.map((y) => (
+        <option key={y.id} value={y.id}>
+          {y.label}
+          {y.isCurrent ? ` · ${t('academic.current')}` : ''}
+        </option>
+      ))}
+    </Select>
   );
 }
 
 function DateRange({ from, to }: { from: string; to: string }) {
   const { i18n } = useTranslation();
+  if (from === to) return <span className="tabular whitespace-nowrap">{formatDate(from, i18n.language)}</span>;
   return (
-    <span className="whitespace-nowrap">
+    <span className="tabular whitespace-nowrap">
       {formatDate(from, i18n.language)} – {formatDate(to, i18n.language)}
     </span>
   );
 }
 
+const ActiveBadge = ({ active }: { active: boolean }) => {
+  const { t } = useTranslation();
+  return (
+    <Badge tone={active ? 'ok' : 'neutral'} dot>
+      {active ? t('academic.active') : t('academic.retired')}
+    </Badge>
+  );
+};
+
 // Years and terms ----------------------------------------------------------
 function YearsTab() {
   const { t } = useTranslation();
+  const toast = useToast();
   const canManage = useCanManage();
   const { years, current, reload } = useYears();
   const [version, setVersion] = useState(0);
   const [yearId, setYearId] = useState('');
-  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     if (!yearId && current) setYearId(String(current.id));
   }, [current, yearId]);
 
   const makeCurrent = async (y: Year) => {
-    setError(null);
     try {
       await api(`/academic-years/${y.id}/current`, { method: 'POST' });
+      toast.success(t('academic.years.nowCurrent', { year: y.label }));
       setVersion((v) => v + 1);
       reload();
     } catch (e) {
-      setError(t((e as Error).message));
+      toast.error(t((e as Error).message));
     }
   };
 
   return (
     <div className="space-y-10">
-      {error && <Alert>{error}</Alert>}
       <CrudSection<Year>
         key={`years-${version}`}
         title={t('academic.years.title')}
@@ -204,6 +211,7 @@ function YearsTab() {
         itemPath={(id) => `/academic-years/${id}`}
         noun={t('academic.years.noun')}
         emptyText={t('academic.years.empty')}
+        emptyHelp={t('academic.years.emptyHelp')}
         canManage={canManage}
         onChanged={reload}
         columns={[
@@ -212,24 +220,33 @@ function YearsTab() {
             render: (y) => (
               <span className="inline-flex flex-wrap items-center gap-2">
                 <span className="font-medium">{y.label}</span>
-                {y.isCurrent && <StatusBadge tone="ok">{t('academic.current')}</StatusBadge>}
+                {y.isCurrent && <Badge tone="brand">{t('academic.current')}</Badge>}
               </span>
             ),
           },
           { label: t('academic.dates'), render: (y) => <DateRange from={y.startsOn} to={y.endsOn} /> },
+          {
+            label: t('academic.length'),
+            render: (y) => t('academic.weeks', { count: Math.round(daysBetween(y.startsOn, y.endsOn) / 7) }),
+            wide: true,
+          },
         ]}
-        rowExtra={(y) =>
-          canManage && !y.isCurrent ? (
-            <Button variant="ghost" onClick={() => void makeCurrent(y)}>
-              {t('academic.years.makeCurrent')}
-            </Button>
-          ) : null
+        extraActions={(y) =>
+          canManage && !y.isCurrent
+            ? [{ label: t('academic.years.makeCurrent'), icon: <CalendarCheck className="size-4" />, onSelect: () => void makeCurrent(y) }]
+            : []
         }
         fields={[
           { name: 'label', label: t('academic.label'), type: 'text', hint: t('academic.years.labelHint'), required: true },
-          { name: 'startsOn', label: t('academic.startsOn'), type: 'date', required: true },
-          { name: 'endsOn', label: t('academic.endsOn'), type: 'date', required: true },
-          { name: 'isCurrent', label: t('academic.years.isCurrent'), type: 'checkbox', createOnly: true },
+          { name: 'startsOn', label: t('academic.startsOn'), type: 'date', required: true, half: true },
+          { name: 'endsOn', label: t('academic.endsOn'), type: 'date', required: true, half: true },
+          {
+            name: 'isCurrent',
+            label: t('academic.years.isCurrent'),
+            hint: t('academic.years.isCurrentHint'),
+            type: 'checkbox',
+            createOnly: true,
+          },
         ]}
         toValues={(y) => ({ label: y.label, startsOn: y.startsOn, endsOn: y.endsOn })}
       />
@@ -239,23 +256,28 @@ function YearsTab() {
           key={`terms-${yearId}`}
           title={t('academic.terms.title')}
           intro={t('academic.terms.intro')}
-          filters={<YearSelect years={years} value={yearId} onChange={setYearId} />}
+          filters={<YearFilter years={years} value={yearId} onChange={setYearId} />}
           listPath={yearId ? `/academic-years/${yearId}/terms` : null}
           createPath={`/academic-years/${yearId}/terms`}
           itemPath={(id) => `/terms/${id}`}
           noun={t('academic.terms.noun')}
           emptyText={t('academic.terms.empty')}
+          emptyHelp={t('academic.terms.emptyHelp')}
           canManage={canManage}
           columns={[
             { label: t('academic.label'), render: (x) => <span className="font-medium">{x.label}</span> },
             { label: t('academic.dates'), render: (x) => <DateRange from={x.startsOn} to={x.endsOn} /> },
-            { label: t('academic.sequence'), render: (x) => x.sequence, wide: true },
+            {
+              label: t('academic.length'),
+              render: (x) => t('academic.weeks', { count: Math.round(daysBetween(x.startsOn, x.endsOn) / 7) }),
+              wide: true,
+            },
           ]}
           fields={[
-            { name: 'label', label: t('academic.label'), type: 'text', required: true },
+            { name: 'label', label: t('academic.label'), type: 'text', hint: t('academic.terms.labelHint'), required: true },
             { name: 'sequence', label: t('academic.sequence'), type: 'number', hint: t('academic.terms.sequenceHint'), required: true },
-            { name: 'startsOn', label: t('academic.startsOn'), type: 'date', required: true },
-            { name: 'endsOn', label: t('academic.endsOn'), type: 'date', required: true },
+            { name: 'startsOn', label: t('academic.startsOn'), type: 'date', required: true, half: true },
+            { name: 'endsOn', label: t('academic.endsOn'), type: 'date', required: true, half: true },
           ]}
           toValues={(x) => ({ label: x.label, sequence: String(x.sequence), startsOn: x.startsOn, endsOn: x.endsOn })}
         />
@@ -279,37 +301,32 @@ function GradesTab() {
         itemPath={(id) => `/grades/${id}`}
         noun={t('academic.grades.noun')}
         emptyText={t('academic.grades.empty')}
+        emptyHelp={t('academic.grades.emptyHelp')}
         canManage={canManage}
+        searchText={(g) => g.name}
         columns={[
           { label: t('academic.name'), render: (g) => <span className="font-medium">{g.name}</span> },
-          { label: t('academic.grades.level'), render: (g) => g.level, wide: true },
-          {
-            label: t('academic.status'),
-            render: (g) => (
-              <StatusBadge tone={g.isActive ? 'ok' : 'muted'}>{g.isActive ? t('academic.active') : t('academic.retired')}</StatusBadge>
-            ),
-            wide: true,
-          },
+          { label: t('academic.grades.level'), render: (g) => <span className="tabular">{g.level}</span> },
+          { label: t('academic.status'), render: (g) => <ActiveBadge active={g.isActive} />, wide: true },
         ]}
-        rowExtra={(g) => (
-          <Button variant="ghost" onClick={() => setSubjectsFor(g)}>
-            {t('academic.grades.subjects')}
-          </Button>
-        )}
+        extraActions={(g) => [
+          { label: t('academic.grades.manageSubjects'), icon: <ListChecks className="size-4" />, onSelect: () => setSubjectsFor(g) },
+        ]}
         fields={[
           { name: 'name', label: t('academic.name'), type: 'text', hint: t('academic.grades.nameHint'), required: true },
           { name: 'level', label: t('academic.grades.level'), type: 'number', hint: t('academic.grades.levelHint'), required: true },
-          { name: 'isActive', label: t('academic.inUse'), type: 'checkbox', initial: true },
+          { name: 'isActive', label: t('academic.inUse'), hint: t('academic.inUseHint'), type: 'checkbox', initial: true },
         ]}
         toValues={(g) => ({ name: g.name, level: String(g.level), isActive: g.isActive })}
       />
-      {subjectsFor && <GradeSubjectsDialog grade={subjectsFor} canManage={canManage} onClose={() => setSubjectsFor(null)} />}
+      {subjectsFor && <GradeSubjectsDrawer grade={subjectsFor} canManage={canManage} onClose={() => setSubjectsFor(null)} />}
     </>
   );
 }
 
-function GradeSubjectsDialog({ grade, canManage, onClose }: { grade: Grade; canManage: boolean; onClose: () => void }) {
+function GradeSubjectsDrawer({ grade, canManage, onClose }: { grade: Grade; canManage: boolean; onClose: () => void }) {
   const { t } = useTranslation();
+  const toast = useToast();
   const subjects = useResource<{ items: Subject[] }>('/subjects');
   const current = useResource<{ items: Array<{ subject: Subject; isOptional: boolean }> }>(`/grades/${grade.id}/subjects`);
   const [chosen, setChosen] = useState<Map<number, boolean> | null>(null);
@@ -330,25 +347,44 @@ function GradeSubjectsDialog({ grade, canManage, onClose }: { grade: Grade; canM
   async function save() {
     const body = { subjects: [...(chosen ?? new Map())].map(([subjectId, isOptional]) => ({ subjectId, isOptional })) };
     const ok = await submit.run(() => api(`/grades/${grade.id}/subjects`, { method: 'PUT', body }));
-    if (ok) onClose();
+    if (ok) {
+      toast.success(t('academic.grades.subjectsSaved', { grade: grade.name }));
+      onClose();
+    }
   }
 
   const available = (subjects.data?.items ?? []).filter((s) => s.isActive || chosen?.has(s.id));
   return (
-    <Dialog open title={t('academic.grades.subjectsFor', { grade: grade.name })} onClose={onClose}>
+    <Drawer
+      open
+      title={t('academic.grades.subjectsFor', { grade: grade.name })}
+      description={t('academic.grades.subjectsIntro')}
+      onClose={onClose}
+      footer={
+        <>
+          <Button onClick={onClose}>{canManage ? t('common.cancel') : t('common.close')}</Button>
+          {canManage && (
+            <Button variant="primary" busy={submit.busy} onClick={() => void save()} disabled={!chosen}>
+              {t('common.saveChanges')}
+            </Button>
+          )}
+        </>
+      }
+    >
       {!chosen || !subjects.data ? (
         <Loading />
       ) : available.length === 0 ? (
-        <p className="text-sm text-ink-soft">{t('academic.subjects.empty')}</p>
+        <Alert tone="info">{t('academic.grades.noSubjectsYet')}</Alert>
       ) : (
         <div className="space-y-4">
           {submit.error && <Alert>{submit.error}</Alert>}
-          <p className="text-sm text-ink-soft">{t('academic.grades.subjectsIntro')}</p>
-          <ul className="divide-y divide-rule border-y border-rule">
+          <p className="text-[0.8125rem] text-fg-muted">{t('academic.grades.selectedCount', { count: chosen.size })}</p>
+          <ul className="divide-y divide-line rounded-lg border border-line">
             {available.map((s) => (
-              <li key={s.id} className="flex flex-wrap items-center justify-between gap-x-4">
+              <li key={s.id} className="flex flex-wrap items-center justify-between gap-x-4 px-3.5">
                 <Checkbox
-                  label={`${s.name} (${s.code})`}
+                  label={s.name}
+                  description={[s.code, s.nameSi, s.nameTa].filter(Boolean).join(' · ')}
                   checked={chosen.has(s.id)}
                   disabled={!canManage}
                   onChange={(e) => toggle(s.id, e.target.checked)}
@@ -364,17 +400,9 @@ function GradeSubjectsDialog({ grade, canManage, onClose }: { grade: Grade; canM
               </li>
             ))}
           </ul>
-          <FormActions>
-            <Button onClick={onClose}>{canManage ? t('common.cancel') : t('common.close')}</Button>
-            {canManage && (
-              <Button variant="primary" busy={submit.busy} onClick={() => void save()}>
-                {t('common.saveChanges')}
-              </Button>
-            )}
-          </FormActions>
         </div>
       )}
-    </Dialog>
+    </Drawer>
   );
 }
 
@@ -390,32 +418,30 @@ function SubjectsTab() {
       itemPath={(id) => `/subjects/${id}`}
       noun={t('academic.subjects.noun')}
       emptyText={t('academic.subjects.empty')}
+      emptyHelp={t('academic.subjects.emptyHelp')}
       canManage={useCanManage()}
+      searchText={(s) => [s.code, s.name, s.nameSi, s.nameTa].filter(Boolean).join(' ')}
       columns={[
         {
           label: t('academic.name'),
           render: (s) => (
             <>
               <span className="font-medium">{s.name}</span>
-              {(s.nameSi || s.nameTa) && <span className="block text-ink-soft">{[s.nameSi, s.nameTa].filter(Boolean).join(' / ')}</span>}
+              {(s.nameSi || s.nameTa) && (
+                <span className="block text-[0.8125rem] text-fg-muted">{[s.nameSi, s.nameTa].filter(Boolean).join(' · ')}</span>
+              )}
             </>
           ),
         },
-        { label: t('academic.subjects.code'), render: (s) => s.code },
-        {
-          label: t('academic.status'),
-          render: (s) => (
-            <StatusBadge tone={s.isActive ? 'ok' : 'muted'}>{s.isActive ? t('academic.active') : t('academic.retired')}</StatusBadge>
-          ),
-          wide: true,
-        },
+        { label: t('academic.subjects.code'), render: (s) => <code className="rounded bg-subtle px-1.5 py-0.5 text-xs">{s.code}</code> },
+        { label: t('academic.status'), render: (s) => <ActiveBadge active={s.isActive} />, wide: true },
       ]}
       fields={[
-        { name: 'code', label: t('academic.subjects.code'), type: 'text', hint: t('academic.subjects.codeHint'), required: true },
         { name: 'name', label: t('academic.subjects.nameEn'), type: 'text', required: true },
-        { name: 'nameSi', label: t('academic.subjects.nameSi'), type: 'text', nullable: true },
-        { name: 'nameTa', label: t('academic.subjects.nameTa'), type: 'text', nullable: true },
-        { name: 'isActive', label: t('academic.inUse'), type: 'checkbox', initial: true },
+        { name: 'code', label: t('academic.subjects.code'), type: 'text', hint: t('academic.subjects.codeHint'), required: true },
+        { name: 'nameSi', label: t('academic.subjects.nameSi'), type: 'text', nullable: true, half: true },
+        { name: 'nameTa', label: t('academic.subjects.nameTa'), type: 'text', nullable: true, half: true },
+        { name: 'isActive', label: t('academic.inUse'), hint: t('academic.inUseHint'), type: 'checkbox', initial: true },
       ]}
       toValues={(s) => ({ code: s.code, name: s.name, nameSi: s.nameSi ?? '', nameTa: s.nameTa ?? '', isActive: s.isActive })}
     />
@@ -444,36 +470,32 @@ function ClassesTab() {
     [rooms.data],
   );
 
-  if (!loading && years.length === 0) return <Alert tone="info">{t('academic.classes.needYear')}</Alert>;
+  if (!loading && years.length === 0) return <Alert tone="info" title={t('academic.classes.needYear')} />;
   return (
     <CrudSection<Section>
       key={`${yearId}-${gradeId}`}
       title={t('academic.classes.title')}
       intro={t('academic.classes.intro')}
+      searchText={(c) => `${c.grade.name} ${c.name} ${c.homeRoom?.name ?? ''}`}
       filters={
-        <div className="flex flex-wrap gap-3">
-          <YearSelect years={years} value={yearId} onChange={setYearId} />
-          <div className="max-w-xs">
-            <Field label={t('academic.grade')}>
-              {(id) => (
-                <SelectInput id={id} value={gradeId} onChange={(e) => setGradeId(e.target.value)}>
-                  <option value="">{t('academic.allGrades')}</option>
-                  {(grades.data?.items ?? []).map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.name}
-                    </option>
-                  ))}
-                </SelectInput>
-              )}
-            </Field>
-          </div>
-        </div>
+        <>
+          <YearFilter years={years} value={yearId} onChange={setYearId} />
+          <Select aria-label={t('academic.grade')} className="w-full sm:w-44" value={gradeId} onChange={(e) => setGradeId(e.target.value)}>
+            <option value="">{t('academic.allGrades')}</option>
+            {(grades.data?.items ?? []).map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </Select>
+        </>
       }
       listPath={yearId ? `/class-sections${query({ academicYearId: yearId, gradeId })}` : null}
       createPath="/class-sections"
       itemPath={(id) => `/class-sections/${id}`}
       noun={t('academic.classes.noun')}
       emptyText={t('academic.classes.empty')}
+      emptyHelp={t('academic.classes.emptyHelp')}
       canManage={canManage}
       columns={[
         {
@@ -484,9 +506,12 @@ function ClassesTab() {
             </span>
           ),
         },
-        { label: t('academic.classes.medium'), render: (c) => (c.medium ? t(`language.${c.medium}`) : '—') },
+        {
+          label: t('academic.classes.medium'),
+          render: (c) => (c.medium ? <Badge tone="neutral">{t(`language.${c.medium}`)}</Badge> : '—'),
+        },
         { label: t('academic.classes.homeRoom'), render: (c) => c.homeRoom?.name ?? '—', wide: true },
-        { label: t('academic.capacity'), render: (c) => c.capacity ?? '—', wide: true },
+        { label: t('academic.capacity'), render: (c) => <span className="tabular">{c.capacity ?? '—'}</span>, wide: true },
       ]}
       fields={[
         {
@@ -497,6 +522,7 @@ function ClassesTab() {
           required: true,
           createOnly: true,
           initial: yearId,
+          half: true,
           options: years.map((y) => ({ value: String(y.id), label: y.label })),
         },
         {
@@ -507,6 +533,7 @@ function ClassesTab() {
           required: true,
           createOnly: true,
           initial: gradeId,
+          half: true,
           options: gradeOptions,
         },
         {
@@ -521,9 +548,10 @@ function ClassesTab() {
           label: t('academic.classes.medium'),
           type: 'select',
           nullable: true,
+          half: true,
           options: LOCALES.map((l) => ({ value: l, label: t(`language.${l}`) })),
         },
-        { name: 'capacity', label: t('academic.capacity'), type: 'number', nullable: true },
+        { name: 'capacity', label: t('academic.capacity'), type: 'number', nullable: true, half: true },
         { name: 'homeRoomId', label: t('academic.classes.homeRoom'), type: 'select', numeric: true, nullable: true, options: roomOptions },
       ]}
       toValues={(c) => ({ name: c.name, medium: c.medium ?? '', capacity: str(c.capacity), homeRoomId: str(c.homeRoom?.id) })}
@@ -543,22 +571,18 @@ function RoomsTab() {
       itemPath={(id) => `/rooms/${id}`}
       noun={t('academic.rooms.noun')}
       emptyText={t('academic.rooms.empty')}
+      emptyHelp={t('academic.rooms.emptyHelp')}
       canManage={useCanManage()}
+      searchText={(r) => r.name}
       columns={[
         { label: t('academic.name'), render: (r) => <span className="font-medium">{r.name}</span> },
-        { label: t('academic.capacity'), render: (r) => r.capacity ?? '—' },
-        {
-          label: t('academic.status'),
-          render: (r) => (
-            <StatusBadge tone={r.isActive ? 'ok' : 'muted'}>{r.isActive ? t('academic.active') : t('academic.retired')}</StatusBadge>
-          ),
-          wide: true,
-        },
+        { label: t('academic.capacity'), render: (r) => <span className="tabular">{r.capacity ?? '—'}</span> },
+        { label: t('academic.status'), render: (r) => <ActiveBadge active={r.isActive} />, wide: true },
       ]}
       fields={[
-        { name: 'name', label: t('academic.name'), type: 'text', required: true },
+        { name: 'name', label: t('academic.name'), type: 'text', hint: t('academic.rooms.nameHint'), required: true },
         { name: 'capacity', label: t('academic.capacity'), type: 'number', nullable: true },
-        { name: 'isActive', label: t('academic.inUse'), type: 'checkbox', initial: true },
+        { name: 'isActive', label: t('academic.inUse'), hint: t('academic.inUseHint'), type: 'checkbox', initial: true },
       ]}
       toValues={(r) => ({ name: r.name, capacity: str(r.capacity), isActive: r.isActive })}
     />
@@ -566,6 +590,11 @@ function RoomsTab() {
 }
 
 // Bell schedule ----------------------------------------------------------------
+const minutes = (hhmm: string) => {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h! * 60 + m!;
+};
+
 function PeriodsTab() {
   const { t } = useTranslation();
   return (
@@ -577,27 +606,37 @@ function PeriodsTab() {
       itemPath={(id) => `/periods/${id}`}
       noun={t('academic.periods.noun')}
       emptyText={t('academic.periods.empty')}
+      emptyHelp={t('academic.periods.emptyHelp')}
       canManage={useCanManage()}
       columns={[
         {
           label: t('academic.label'),
-          render: (p) => <span className={p.isBreak ? 'italic text-ink-soft' : 'font-medium'}>{p.label}</span>,
+          render: (p) => (
+            <span className="inline-flex items-center gap-2">
+              <span className={p.isBreak ? 'text-fg-muted' : 'font-medium'}>{p.label}</span>
+              {p.isBreak && <Badge tone="warn">{t('academic.periods.break')}</Badge>}
+            </span>
+          ),
         },
         {
           label: t('academic.periods.time'),
           render: (p) => (
-            <span className="tabular-nums">
+            <span className="tabular whitespace-nowrap">
               {p.startsAt} – {p.endsAt}
             </span>
           ),
         },
-        { label: t('academic.sequence'), render: (p) => p.sequence, wide: true },
+        {
+          label: t('academic.periods.duration'),
+          render: (p) => t('academic.periods.minutes', { count: minutes(p.endsAt) - minutes(p.startsAt) }),
+          wide: true,
+        },
       ]}
       fields={[
         { name: 'label', label: t('academic.label'), type: 'text', hint: t('academic.periods.labelHint'), required: true },
-        { name: 'sequence', label: t('academic.sequence'), type: 'number', required: true },
-        { name: 'startsAt', label: t('academic.periods.startsAt'), type: 'time', required: true },
-        { name: 'endsAt', label: t('academic.periods.endsAt'), type: 'time', required: true },
+        { name: 'sequence', label: t('academic.sequence'), type: 'number', hint: t('academic.periods.sequenceHint'), required: true },
+        { name: 'startsAt', label: t('academic.periods.startsAt'), type: 'time', required: true, half: true },
+        { name: 'endsAt', label: t('academic.periods.endsAt'), type: 'time', required: true, half: true },
         { name: 'isBreak', label: t('academic.periods.isBreak'), type: 'checkbox' },
       ]}
       toValues={(p) => ({ label: p.label, sequence: String(p.sequence), startsAt: p.startsAt, endsAt: p.endsAt, isBreak: p.isBreak })}
@@ -606,6 +645,13 @@ function PeriodsTab() {
 }
 
 // Calendar -------------------------------------------------------------------
+const KIND_TONE: Record<string, 'danger' | 'warn' | 'brand' | 'neutral'> = {
+  holiday: 'danger',
+  term_break: 'warn',
+  exam: 'brand',
+  event: 'neutral',
+};
+
 function CalendarTab() {
   const { t } = useTranslation();
   const { years, current } = useYears();
@@ -619,20 +665,30 @@ function CalendarTab() {
       key={yearId}
       title={t('academic.calendar.title')}
       intro={t('academic.calendar.intro')}
-      filters={<YearSelect years={years} value={yearId} onChange={setYearId} allowAll />}
+      filters={<YearFilter years={years} value={yearId} onChange={setYearId} allowAll />}
+      searchText={(e) => e.title}
       listPath={`/calendar-events${query({ academicYearId: yearId })}`}
       createPath="/calendar-events"
       itemPath={(id) => `/calendar-events/${id}`}
       noun={t('academic.calendar.noun')}
       emptyText={t('academic.calendar.empty')}
+      emptyHelp={t('academic.calendar.emptyHelp')}
       canManage={useCanManage()}
       columns={[
-        { label: t('academic.dates'), render: (e) => <DateRange from={e.startsOn} to={e.endsOn} /> },
         { label: t('academic.calendar.event'), render: (e) => <span className="font-medium">{e.title}</span> },
-        { label: t('academic.calendar.kind'), render: (e) => t(`academic.calendar.kinds.${e.kind}`), wide: true },
+        { label: t('academic.dates'), render: (e) => <DateRange from={e.startsOn} to={e.endsOn} /> },
+        {
+          label: t('academic.calendar.kind'),
+          render: (e) => <Badge tone={KIND_TONE[e.kind] ?? 'neutral'}>{t(`academic.calendar.kinds.${e.kind}`)}</Badge>,
+        },
         {
           label: t('academic.calendar.schoolDay'),
-          render: (e) => (e.isSchoolDay ? t('common.yes') : <StatusBadge tone="warn">{t('academic.calendar.closed')}</StatusBadge>),
+          render: (e) =>
+            e.isSchoolDay ? (
+              <span className="text-fg-muted">{t('common.yes')}</span>
+            ) : (
+              <span className="text-fg-muted">{t('academic.calendar.closed')}</span>
+            ),
           wide: true,
         },
       ]}
@@ -644,11 +700,9 @@ function CalendarTab() {
           type: 'select',
           required: true,
           initial: 'holiday',
+          half: true,
           options: CALENDAR_EVENT_KINDS.map((k) => ({ value: k, label: t(`academic.calendar.kinds.${k}`) })),
         },
-        { name: 'startsOn', label: t('academic.startsOn'), type: 'date', required: true },
-        { name: 'endsOn', label: t('academic.calendar.endsOnInclusive'), type: 'date', required: true },
-        { name: 'isSchoolDay', label: t('academic.calendar.isSchoolDay'), type: 'checkbox' },
         {
           name: 'academicYearId',
           label: t('academic.year'),
@@ -656,9 +710,13 @@ function CalendarTab() {
           numeric: true,
           nullable: true,
           initial: yearId,
+          half: true,
           hint: t('academic.calendar.yearHint'),
           options: years.map((y) => ({ value: String(y.id), label: y.label })),
         },
+        { name: 'startsOn', label: t('academic.calendar.firstDay'), type: 'date', required: true, half: true },
+        { name: 'endsOn', label: t('academic.calendar.endsOnInclusive'), type: 'date', required: true, half: true },
+        { name: 'isSchoolDay', label: t('academic.calendar.isSchoolDay'), hint: t('academic.calendar.isSchoolDayHint'), type: 'checkbox' },
       ]}
       toValues={(e) => ({
         title: e.title,

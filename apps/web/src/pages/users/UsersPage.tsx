@@ -1,26 +1,82 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import { Ban, KeyRound, MailPlus, Pencil, RotateCcw, Search, UserPlus, Users } from 'lucide-react';
 import { ROLES, USER_STATUSES, type Paginated, type UserItem } from '@sms/shared';
+import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { query, useResource } from '../../lib/data';
-import { formatDateTime, statusTone } from '../../lib/format';
-import { Alert, Button, EmptyState, Field, Loading, PageHeader, SelectInput, StatusBadge, TextInput } from '../../components/ui';
+import { formatDateTime, formatRelative, statusTone } from '../../lib/format';
+import {
+  Alert,
+  Avatar,
+  Badge,
+  Button,
+  ConfirmDialog,
+  DataTable,
+  EmptyState,
+  Input,
+  PageHeader,
+  Pagination,
+  Select,
+  useToast,
+  type Column,
+  type MenuItem,
+} from '../../components/ui';
 import { CreateUserDialog } from './CreateUserDialog';
-import { UserDialog } from './UserDialog';
+import { UserDialog, type UserTab } from './UserDialog';
 
-const PAGE_SIZE = 25;
+export function RoleBadges({ roles }: { roles: UserItem['roles'] }) {
+  const { t } = useTranslation();
+  if (roles.length === 0) return <span className="text-fg-faint">{t('users.noRoles')}</span>;
+  const shown = roles.slice(0, 2);
+  return (
+    <span className="flex flex-wrap gap-1">
+      {shown.map((r) => (
+        <Badge key={r} tone={r === 'school_admin' ? 'brand' : 'neutral'}>
+          {t(`roles.${r}`)}
+        </Badge>
+      ))}
+      {roles.length > shown.length && (
+        <Badge tone="neutral">
+          <span
+            title={roles
+              .slice(2)
+              .map((r) => t(`roles.${r}`))
+              .join(', ')}
+          >
+            +{roles.length - shown.length}
+          </span>
+        </Badge>
+      )}
+    </span>
+  );
+}
 
 export default function UsersPage() {
   const { t, i18n } = useTranslation();
-  const { can } = useAuth();
+  const { can, session } = useAuth();
+  const toast = useToast();
+  const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState('');
   const [q, setQ] = useState('');
   const [role, setRole] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
-  const [creating, setCreating] = useState(false);
-  const [openId, setOpenId] = useState<number | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [pageSize, setPageSize] = useState(25);
+  const [creating, setCreating] = useState(params.get('new') === '1');
+  const [open, setOpen] = useState<{ id: number; tab: UserTab } | null>(null);
+  const [disabling, setDisabling] = useState<UserItem | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
+
+  // "Add user" quick action from the dashboard arrives as ?new=1.
+  useEffect(() => {
+    if (params.get('new') === '1') {
+      setCreating(true);
+      setParams({}, { replace: true });
+    }
+  }, [params, setParams]);
 
   // Search as you type, without a request per keystroke.
   useEffect(() => {
@@ -31,47 +87,135 @@ export default function UsersPage() {
     return () => clearTimeout(h);
   }, [search]);
 
-  const list = useResource<Paginated<UserItem>>(`/users${query({ q, role, status, page, pageSize: PAGE_SIZE })}`);
-  const data = list.data;
-  const from = data && data.total > 0 ? (data.page - 1) * data.pageSize + 1 : 0;
-  const to = data ? Math.min(data.page * data.pageSize, data.total) : 0;
+  const list = useResource<Paginated<UserItem>>(`/users${query({ q, role, status, page, pageSize })}`);
+  const filtered = !!(q || role || status);
+  const canManage = can('users.manage');
+
+  const act = async (u: UserItem, path: 'enable' | 'invitation', message: string) => {
+    try {
+      await api(`/users/${u.id}/${path}`, { method: 'POST' });
+      toast.success(message);
+      list.reload();
+    } catch (e) {
+      toast.error(t((e as Error).message));
+    }
+  };
+
+  const rowActions = (u: UserItem): MenuItem[] => {
+    const self = u.id === session?.user.id;
+    const items: MenuItem[] = [
+      { label: t('users.openDetails'), icon: <Pencil className="size-4" />, onSelect: () => setOpen({ id: u.id, tab: 'details' }) },
+    ];
+    if (!canManage || self) return items;
+    if (u.status === 'invited')
+      items.push({
+        label: t('users.resendInvitation'),
+        icon: <MailPlus className="size-4" />,
+        onSelect: () => void act(u, 'invitation', t('users.invitationResent')),
+      });
+    if (u.status !== 'disabled')
+      items.push({
+        label: t('users.setTemporaryPassword'),
+        icon: <KeyRound className="size-4" />,
+        onSelect: () => setOpen({ id: u.id, tab: 'security' }),
+      });
+    items.push(
+      u.status === 'disabled'
+        ? {
+            label: t('users.enable'),
+            icon: <RotateCcw className="size-4" />,
+            onSelect: () => void act(u, 'enable', t('users.enabledNamed', { name: u.displayName })),
+          }
+        : { label: t('users.disable'), icon: <Ban className="size-4" />, danger: true, onSelect: () => setDisabling(u) },
+    );
+    return items;
+  };
+
+  const columns: Column<UserItem>[] = [
+    {
+      key: 'user',
+      header: t('users.person'),
+      cell: (u) => (
+        <span className="flex items-center gap-3">
+          <Avatar name={u.displayName} />
+          <span className="min-w-0">
+            <span className="block truncate font-medium text-fg">
+              {u.displayName}
+              {u.id === session?.user.id && <span className="ml-1.5 text-xs font-normal text-fg-faint">({t('users.you')})</span>}
+            </span>
+            <span className="block truncate text-[0.8125rem] text-fg-muted">{u.identifier}</span>
+          </span>
+        </span>
+      ),
+    },
+    { key: 'roles', header: t('users.roles'), cell: (u) => <RoleBadges roles={u.roles} /> },
+    {
+      key: 'status',
+      header: t('users.status'),
+      cell: (u) => (
+        <span className="flex flex-wrap items-center gap-1.5">
+          <Badge tone={statusTone(u.status)} dot>
+            {t(`users.statuses.${u.status}`)}
+          </Badge>
+          {u.mustChangePassword && <Badge tone="neutral">{t('users.temporaryPasswordShort')}</Badge>}
+        </span>
+      ),
+    },
+    {
+      key: 'last',
+      header: t('users.lastSignIn'),
+      hideBelow: 'lg',
+      cell: (u) => (
+        <span className="text-fg-muted" title={formatDateTime(u.lastLoginAt, i18n.language)}>
+          {u.lastLoginAt ? formatRelative(u.lastLoginAt, i18n.language) : t('users.never')}
+        </span>
+      ),
+    },
+  ];
 
   return (
     <>
       <PageHeader
+        crumbs={[{ label: t('nav.dashboard'), to: '/' }, { label: t('users.title') }]}
         title={t('users.title')}
-        intro={t('users.intro')}
+        description={t('users.intro')}
         actions={
-          can('users.manage') && (
-            <Button variant="primary" onClick={() => setCreating(true)}>
+          canManage && (
+            <Button variant="primary" icon={<UserPlus className="size-4" />} onClick={() => setCreating(true)}>
               {t('users.add')}
             </Button>
           )
         }
       />
 
-      {notice && (
+      {list.error && (
         <div className="mb-4">
-          <Alert tone="success">{notice}</Alert>
+          <Alert>{t(list.error.message)}</Alert>
         </div>
       )}
 
-      <div className="mb-5 grid gap-3 sm:grid-cols-[2fr_1fr_1fr]">
-        <Field label={t('users.search')}>
-          {(id) => (
-            <TextInput
-              id={id}
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('users.searchPlaceholder')}
-            />
-          )}
-        </Field>
-        <Field label={t('users.role')}>
-          {(id) => (
-            <SelectInput
-              id={id}
+      <DataTable<UserItem>
+        label={t('users.title')}
+        columns={columns}
+        rows={list.data?.items ?? null}
+        loading={list.loading}
+        onRowClick={(u) => setOpen({ id: u.id, tab: 'details' })}
+        rowActions={rowActions}
+        toolbar={
+          <>
+            <div className="min-w-[12rem] flex-1">
+              <Input
+                type="search"
+                aria-label={t('users.search')}
+                placeholder={t('users.searchPlaceholder')}
+                leading={<Search className="size-4" />}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <Select
+              aria-label={t('users.role')}
+              className="w-full sm:w-44"
               value={role}
               onChange={(e) => {
                 setRole(e.target.value);
@@ -84,13 +228,10 @@ export default function UsersPage() {
                   {t(`roles.${r}`)}
                 </option>
               ))}
-            </SelectInput>
-          )}
-        </Field>
-        <Field label={t('users.status')}>
-          {(id) => (
-            <SelectInput
-              id={id}
+            </Select>
+            <Select
+              aria-label={t('users.status')}
+              className="w-full sm:w-40"
               value={status}
               onChange={(e) => {
                 setStatus(e.target.value);
@@ -103,105 +244,94 @@ export default function UsersPage() {
                   {t(`users.statuses.${s}`)}
                 </option>
               ))}
-            </SelectInput>
-          )}
-        </Field>
-      </div>
-
-      {list.error && <Alert>{t(list.error.message)}</Alert>}
-      {list.loading && !data && <Loading />}
-      {data && data.items.length === 0 && (
-        <EmptyState
-          title={q || role || status ? t('users.noMatches') : t('users.empty')}
-          action={
-            can('users.manage') && !q && !role && !status ? (
-              <Button variant="primary" onClick={() => setCreating(true)}>
-                {t('users.add')}
+            </Select>
+            {filtered && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setSearch('');
+                  setRole('');
+                  setStatus('');
+                  setPage(1);
+                }}
+              >
+                {t('table.clearFilters')}
               </Button>
-            ) : undefined
-          }
-        />
-      )}
-
-      {data && data.items.length > 0 && (
-        <>
-          <div className="overflow-hidden rounded-md border border-rule bg-sheet">
-            <table className="w-full text-left text-sm">
-              <thead className="hidden border-b border-rule bg-paper text-ink-soft sm:table-header-group">
-                <tr>
-                  <th scope="col" className="px-4 py-2.5 font-medium">
-                    {t('users.person')}
-                  </th>
-                  <th scope="col" className="px-4 py-2.5 font-medium">
-                    {t('users.roles')}
-                  </th>
-                  <th scope="col" className="px-4 py-2.5 font-medium">
-                    {t('users.status')}
-                  </th>
-                  <th scope="col" className="px-4 py-2.5 font-medium">
-                    {t('users.lastSignIn')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-rule">
-                {data.items.map((u) => (
-                  <tr key={u.id} className="block px-4 py-3 hover:bg-paper sm:table-row sm:p-0">
-                    <td className="block sm:table-cell sm:px-4 sm:py-3">
-                      <button
-                        type="button"
-                        className="text-left font-medium text-register underline-offset-2 hover:underline"
-                        onClick={() => setOpenId(u.id)}
-                      >
-                        {u.displayName}
-                      </button>
-                      <div className="text-ink-soft">{u.identifier}</div>
-                    </td>
-                    <td className="block pt-1 sm:table-cell sm:px-4 sm:py-3">
-                      {u.roles.length ? (
-                        u.roles.map((r) => t(`roles.${r}`)).join(', ')
-                      ) : (
-                        <span className="text-ink-soft">{t('users.noRoles')}</span>
-                      )}
-                    </td>
-                    <td className="inline-block pt-2 pr-3 sm:table-cell sm:px-4 sm:py-3">
-                      <StatusBadge tone={statusTone(u.status)}>{t(`users.statuses.${u.status}`)}</StatusBadge>
-                      {u.mustChangePassword && <span className="ml-2 text-xs text-ink-soft">{t('users.temporaryPasswordShort')}</span>}
-                    </td>
-                    <td className="inline-block pt-2 text-ink-soft sm:table-cell sm:px-4 sm:py-3">
-                      <span className="sm:hidden">{t('users.lastSignIn')}: </span>
-                      {formatDateTime(u.lastLoginAt, i18n.language)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm">
-            <p className="text-ink-soft" aria-live="polite">
-              {t('users.showing', { from, to, total: data.total })}
-            </p>
-            <div className="flex gap-2">
-              <Button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-                {t('common.previous')}
-              </Button>
-              <Button disabled={to >= data.total} onClick={() => setPage((p) => p + 1)}>
-                {t('common.next')}
-              </Button>
-            </div>
-          </div>
-        </>
-      )}
+            )}
+          </>
+        }
+        empty={
+          <EmptyState
+            icon={filtered ? <Search className="size-5" /> : <Users className="size-5" />}
+            title={filtered ? t('users.noMatches') : t('users.empty')}
+            description={filtered ? t('table.tryOtherFilters') : t('users.emptyHelp')}
+            action={
+              canManage && !filtered ? (
+                <Button variant="primary" icon={<UserPlus className="size-4" />} onClick={() => setCreating(true)}>
+                  {t('users.add')}
+                </Button>
+              ) : undefined
+            }
+          />
+        }
+        footer={
+          list.data && list.data.total > 0 ? (
+            <Pagination
+              page={list.data.page}
+              pageSize={list.data.pageSize}
+              total={list.data.total}
+              onPage={setPage}
+              onPageSize={(n) => {
+                setPageSize(n);
+                setPage(1);
+              }}
+            />
+          ) : undefined
+        }
+      />
 
       <CreateUserDialog
         open={creating}
         onClose={() => setCreating(false)}
         onCreated={(u, invited) => {
           setCreating(false);
-          setNotice(invited ? t('users.invitedNotice', { name: u.displayName }) : t('users.createdNotice', { name: u.displayName }));
+          toast.success(invited ? t('users.invitedNotice', { name: u.displayName }) : t('users.createdNotice', { name: u.displayName }));
           list.reload();
         }}
       />
-      <UserDialog userId={openId} onClose={() => setOpenId(null)} onChanged={() => list.reload()} />
+      <UserDialog
+        userId={open?.id ?? null}
+        initialTab={open?.tab ?? 'details'}
+        onClose={() => setOpen(null)}
+        onChanged={() => list.reload()}
+      />
+      <ConfirmDialog
+        open={disabling !== null}
+        title={t('users.disableTitle', { name: disabling?.displayName ?? '' })}
+        body={t('users.disableHelp')}
+        confirmLabel={t('users.disable')}
+        busy={busy}
+        error={confirmError}
+        onClose={() => {
+          setDisabling(null);
+          setConfirmError(null);
+        }}
+        onConfirm={async () => {
+          if (!disabling) return;
+          setBusy(true);
+          setConfirmError(null);
+          try {
+            await api(`/users/${disabling.id}/disable`, { method: 'POST' });
+            toast.success(t('users.disabledNamed', { name: disabling.displayName }));
+            setDisabling(null);
+            list.reload();
+          } catch (e) {
+            setConfirmError(t((e as Error).message));
+          } finally {
+            setBusy(false);
+          }
+        }}
+      />
     </>
   );
 }

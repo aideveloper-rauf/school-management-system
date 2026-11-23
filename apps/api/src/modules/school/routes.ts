@@ -17,6 +17,15 @@ const updateSchoolSchema = z
   .refine((v) => Object.keys(v).length > 0, 'At least one field is required');
 
 export const schoolRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { db }) => {
+  /**
+   * Public branding for the sign-in pages: the school's name only (already public information).
+   * Nothing about people, settings or configuration.
+   */
+  app.get('/school/branding', { config: { public: true } }, async () => {
+    const s = await db.selectFrom('schools').select(['name', 'short_name']).executeTakeFirst();
+    return { name: s?.name ?? null, shortName: s?.short_name ?? null };
+  });
+
   app.get('/school', { preHandler: requireAuth }, async () => {
     const s = await db.selectFrom('schools').select(['name', 'short_name', 'default_locale', 'timezone']).executeTakeFirst();
     if (!s) throw new AppError('SETUP_REQUIRED', 'errors.setupRequired');

@@ -1,45 +1,49 @@
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../lib/auth';
-import { Alert, PageHeader } from '../../components/ui';
+import { Avatar, Badge, Card, FormSection, PageHeader, useToast } from '../../components/ui';
 import { ChangePasswordForm } from '../../components/ChangePasswordForm';
+import { LanguageSwitcher } from '../../components/LanguageSwitcher';
 
 export default function AccountPage() {
   const { t } = useTranslation();
+  const toast = useToast();
   const { session } = useAuth();
-  const [saved, setSaved] = useState(false);
   if (!session) return null;
   return (
     <>
-      <PageHeader title={t('account.title')} />
-      <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
-        <section aria-labelledby="pw-heading" className="max-w-md">
-          <h2 id="pw-heading" className="mb-1 text-lg font-semibold">
-            {t('account.changePassword')}
-          </h2>
-          <p className="mb-4 text-sm text-ink-soft">{t('account.changePasswordIntro')}</p>
-          {saved && (
-            <div className="mb-4">
-              <Alert tone="success">{t('account.passwordChanged')}</Alert>
+      <PageHeader
+        crumbs={[{ label: t('nav.dashboard'), to: '/' }, { label: t('account.title') }]}
+        title={t('account.title')}
+        description={t('account.intro')}
+      />
+      <div className="space-y-6">
+        <Card>
+          <div className="flex flex-wrap items-center gap-4">
+            <Avatar name={session.user.displayName} size="lg" />
+            <div className="min-w-0">
+              <p className="text-base font-semibold">{session.user.displayName}</p>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {session.user.roles.length ? (
+                  session.user.roles.map((r) => (
+                    <Badge key={r} tone={r === 'school_admin' ? 'brand' : 'neutral'}>
+                      {t(`roles.${r}`)}
+                    </Badge>
+                  ))
+                ) : (
+                  <span className="text-[0.8125rem] text-fg-muted">{t('users.noRoles')}</span>
+                )}
+              </div>
             </div>
-          )}
-          <ChangePasswordForm submitLabel={t('account.saveNewPassword')} onDone={() => setSaved(true)} />
-        </section>
-        <section aria-labelledby="me-heading" className="text-sm">
-          <h2 id="me-heading" className="mb-3 text-lg font-semibold">
-            {t('account.you')}
-          </h2>
-          <dl className="divide-y divide-rule border-y border-rule">
-            <div className="flex justify-between gap-4 py-2">
-              <dt className="text-ink-soft">{t('users.displayName')}</dt>
-              <dd className="text-right">{session.user.displayName}</dd>
-            </div>
-            <div className="flex justify-between gap-4 py-2">
-              <dt className="text-ink-soft">{t('users.roles')}</dt>
-              <dd className="text-right">{session.user.roles.map((r) => t(`roles.${r}`)).join(', ') || t('users.noRoles')}</dd>
-            </div>
-          </dl>
-        </section>
+          </div>
+        </Card>
+        <Card>
+          <FormSection title={t('account.changePassword')} description={t('account.changePasswordIntro')}>
+            <ChangePasswordForm submitLabel={t('account.saveNewPassword')} onDone={() => toast.success(t('account.passwordChanged'))} />
+          </FormSection>
+          <FormSection title={t('account.languageTitle')} description={t('account.languageHelp')}>
+            <LanguageSwitcher />
+          </FormSection>
+        </Card>
       </div>
     </>
   );
