@@ -5,7 +5,7 @@ import rateLimit from '@fastify/rate-limit';
 import { API_PREFIX } from '@sms/shared';
 import type { AppConfig } from './config/env.js';
 import type { Db } from './db/client.js';
-import { authPlugin } from './plugins/auth.js';
+import { assertRouteDeclaresAuth, authPlugin } from './plugins/auth.js';
 import { registerErrorHandling } from './plugins/errors.js';
 import { healthRoutes } from './modules/health/routes.js';
 import { authRoutes } from './modules/auth/routes.js';
@@ -42,6 +42,8 @@ export async function buildApp({ config, db, logger = true }: BuildAppOptions): 
 
   await app.register(
     async (v1) => {
+      // Fail fast at startup if any API route forgets to declare its authorization.
+      v1.addHook('onRoute', assertRouteDeclaresAuth);
       await v1.register(healthRoutes, { db });
       await v1.register(authRoutes, { db, config });
       await v1.register(schoolRoutes, { db });

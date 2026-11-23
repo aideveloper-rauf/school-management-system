@@ -8,7 +8,7 @@ import { SESSION_COOKIE, requireAuth, sessionCookieOptions } from '../../plugins
 import { buildSessionResponse, createSession, isThrottled, normalizeIdentifier, recordAttempt, verifyCredentials } from './service.js';
 
 export const authRoutes: FastifyPluginAsync<{ db: Db; config: AppConfig }> = async (app, { db, config }) => {
-  app.post('/auth/login', { config: { rateLimit: { max: 20, timeWindow: '1 minute' } } }, async (req, reply) => {
+  app.post('/auth/login', { config: { public: true, rateLimit: { max: 20, timeWindow: '1 minute' } } }, async (req, reply) => {
     const body = loginRequestSchema.parse(req.body);
     const identifier = normalizeIdentifier(body.identifier);
 

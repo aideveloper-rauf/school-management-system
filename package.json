@@ -18,6 +18,18 @@
     "test": "npm run build -w @sms/shared && npm run test -w @sms/shared && npm run test -w @sms/api",
     "db:migrate": "npm run db:migrate -w @sms/api",
     "setup:admin": "npm run setup:admin -w @sms/api",
-    "test:integration": "npm run build -w @sms/shared && npm run test:integration -w @sms/api"
-  }
+    "test:integration": "npm run build -w @sms/shared && npm run test:integration -w @sms/api",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write . && eslint . --fix"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.15.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.14.0",
+    "prettier": "^3.10.1",
+    "typescript-eslint": "^8.73.0"
+  },
+  "type": "module"
 }

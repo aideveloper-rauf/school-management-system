@@ -7,7 +7,7 @@ import { APP_VERSION } from '../../version.js';
 
 export const healthRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { db }) => {
   /** Public liveness/readiness probe. Reveals no school data. */
-  app.get('/health', async (_req, reply) => {
+  app.get('/health', { config: { public: true } }, async (_req, reply) => {
     try {
       await sql`SELECT 1`.execute(db);
       return { status: 'ok' };

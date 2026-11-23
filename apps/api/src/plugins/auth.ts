@@ -98,14 +98,38 @@ export const authPlugin = fp<{ db: Db; config: AppConfig }>(async (app, { db, co
   });
 });
 
-export const requireAuth: preHandlerHookHandler = async (req) => {
+declare module 'fastify' {
+  interface FastifyContextConfig {
+    /** Mark a route as intentionally unauthenticated (see assertRouteDeclaresAuth). */
+    public?: boolean;
+  }
+}
+
+/** Tag carried by every authorization preHandler, so route registration can verify it. */
+const AUTH_GUARD = Symbol('sms.authGuard');
+const markGuard = (fn: preHandlerHookHandler): preHandlerHookHandler => Object.assign(fn, { [AUTH_GUARD]: true });
+const isGuard = (fn: unknown) => typeof fn === 'function' && (fn as unknown as Record<symbol, unknown>)[AUTH_GUARD] === true;
+
+export const requireAuth: preHandlerHookHandler = markGuard(async (req) => {
   if (!req.auth) throw unauthenticated();
-};
+});
 
 /** Coarse permission gate. Routes must still apply record-level scope checks. */
 export function requirePermission(...anyOf: Permission[]): preHandlerHookHandler {
-  return async (req) => {
+  return markGuard(async (req) => {
     if (!req.auth) throw unauthenticated();
     if (!anyOf.some((p) => req.auth!.permissions.has(p))) throw forbidden();
-  };
+  });
+}
+
+/**
+ * onRoute check: every route must either use requireAuth/requirePermission as a preHandler
+ * or declare `config: { public: true }`. Throws at startup, so a forgotten guard cannot ship.
+ */
+export function assertRouteDeclaresAuth(route: { method: string | string[]; url: string; preHandler?: unknown; config?: { public?: boolean } }): void {
+  if (route.config?.public === true) return;
+  const handlers = Array.isArray(route.preHandler) ? route.preHandler : [route.preHandler];
+  if (!handlers.some(isGuard)) {
+    throw new Error(`Route ${String(route.method)} ${route.url} has no auth preHandler; use requireAuth/requirePermission or config.public`);
+  }
 }

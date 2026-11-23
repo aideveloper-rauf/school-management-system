@@ -4,6 +4,7 @@ import type { FastifyInstance } from 'fastify';
 import { buildApp } from './app.js';
 import { loadConfig } from './config/env.js';
 import type { Database } from './db/types.js';
+import { assertRouteDeclaresAuth, requireAuth, requirePermission } from './plugins/auth.js';
 
 /**
  * HTTP-level tests that need no MySQL: DummyDriver returns empty result sets,
@@ -66,6 +67,14 @@ describe('API foundation', () => {
     });
     expect(res.statusCode).toBe(403);
     expect(res.json().error.code).toBe('CSRF_FAILED');
+  });
+
+  it('refuses to register a route without an auth guard or public flag', () => {
+    expect(() => assertRouteDeclaresAuth({ method: 'GET', url: '/api/v1/oops' })).toThrow(/no auth preHandler/);
+    expect(() => assertRouteDeclaresAuth({ method: 'GET', url: '/api/v1/oops', preHandler: async () => {} })).toThrow();
+    expect(() => assertRouteDeclaresAuth({ method: 'GET', url: '/api/v1/ok', preHandler: [requireAuth] })).not.toThrow();
+    expect(() => assertRouteDeclaresAuth({ method: 'GET', url: '/api/v1/ok', preHandler: requirePermission('audit.read') })).not.toThrow();
+    expect(() => assertRouteDeclaresAuth({ method: 'GET', url: '/api/v1/pub', config: { public: true } })).not.toThrow();
   });
 
   it('does not leak whether an account exists', async () => {

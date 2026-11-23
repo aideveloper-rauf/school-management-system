@@ -1,0 +1,7 @@
+dist/
+node_modules/
+coverage/
+package-lock.json
+*.tgz
+# Long-form docs keep their authored wrapping.
+*.md
