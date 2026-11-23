@@ -90,6 +90,13 @@ guardian with a verified `student_guardians` link; the student themself.
 - Kysely (typed SQL builder) + `mysql2`. Table types in `db/types.ts` must match migrations.
 - Migrations are TypeScript, registered statically in `db/migrations/index.ts` so they run from `tsx` and from `dist/`.
 - Requirements: InnoDB, `utf8mb4`, MySQL 8.0+ / MariaDB 10.6+ (needed for `SKIP LOCKED` and `CHECK`).
+- Every pooled connection sets `default_storage_engine=InnoDB`, `time_zone='+00:00'` and a strict `sql_mode`
+  (`db/client.ts`), so behaviour does not depend on host defaults (WAMP and some cPanel servers default to MyISAM
+  and local time). Job `run_after` defaults to the database clock.
+- Integration tests (`src/__integration__`, `npm run test:integration`) migrate an empty `*_test` database and check
+  `db/types.ts` against `information_schema`; verified locally on MySQL 8.4 and MariaDB 11.4, and in CI on the
+  minimums MySQL 8.0 / MariaDB 10.6.
+- List endpoints use `paginationQuerySchema`, `pageWindow` and `toPaginated` from `@sms/shared`; dates use `isoDateSchema`.
 - Store timestamps in UTC; school timezone (default `Asia/Colombo`) is applied at presentation.
 - Marks (later): `DECIMAL`, never float; store max marks and grading-scale version with every mark.
 
@@ -116,7 +123,7 @@ removes expired sessions and old login attempts.
 
 ## 6. Known gaps (tracked in backlog.md)
 
-- No integration tests against a real MySQL yet (HTTP tests use Kysely's DummyDriver).
+- CI workflow exists (`.github/workflows/ci.yml`) but has not run yet: the repository has no GitHub remote.
 - No password reset, user management UI, MFA, backup/restore tooling or update client yet.
 - si/ta translations are not supplied yet (only language names).
 - Hosting compatibility is not validated on a real cPanel plan.

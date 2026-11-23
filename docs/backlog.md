@@ -15,7 +15,8 @@ Detailed tasks, IDs, dependencies and exit gates for each item: [`roadmap.md`](r
 - [x] Login / session / logout, CSRF + origin checks, throttling, scrypt hashing
 - [x] Role → permission model, `requirePermission`, audit helper, ops status, DB job queue + cron CLI
 - [x] Web shell: login, role-aware navigation, i18n (en + si/ta fallback), language switcher
-- [ ] MySQL integration test suite (CI service container) incl. migration up on empty DB and login flow
+- [x] MySQL integration test suite (CI service container) incl. migration up on empty DB and login flow
+- [x] Lint/format, route-authorization startup check, shared pagination/id/date schemas (roadmap F-6, F-7)
 - [ ] User management: invite/create users, assign/revoke roles (audited), disable accounts, admin UI
 - [ ] Password change & reset (time-limited single-use tokens, queued email adapter)
 - [ ] Terms CRUD; grades, class sections, subjects, rooms, periods (configurable, no hard-coded calendar)

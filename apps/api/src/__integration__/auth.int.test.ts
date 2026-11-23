@@ -120,4 +120,19 @@ describe('login → session → logout (real MySQL)', () => {
     const dump = JSON.stringify(events);
     expect(dump).not.toContain(PASSWORD);
   });
+
+  it('pages the audit log with the shared list shape', async () => {
+    const { cookie } = await login('admin@test.lk');
+    const res = await app.inject({ method: 'GET', url: '/api/v1/audit-events?page=2&pageSize=1', cookies: { [SESSION_COOKIE]: cookie! } });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body).toMatchObject({ page: 2, pageSize: 1 });
+    expect(body.total).toBeGreaterThan(1);
+    expect(body.items).toHaveLength(1);
+    expect(Object.keys(body.items[0]).sort()).toEqual(['action', 'actorUserId', 'createdAt', 'entityId', 'entityType', 'id']);
+    expect(new Date(body.items[0].createdAt).toISOString()).toBe(body.items[0].createdAt);
+
+    const tooBig = await app.inject({ method: 'GET', url: '/api/v1/audit-events?pageSize=1000', cookies: { [SESSION_COOKIE]: cookie! } });
+    expect(tooBig.statusCode).toBe(422);
+  });
 });

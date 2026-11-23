@@ -18,12 +18,14 @@ npm run db:migrate          # apply migrations to the configured MySQL database
 npm run setup:admin -- --school "Name" --email admin@example.lk --name "Admin"
 npm run typecheck           # shared build + api/web typecheck
 npm test                    # shared + api unit/HTTP tests (no MySQL needed)
+npm run test:integration    # api tests against a real MySQL/MariaDB *_test database (drops its tables)
+npm run lint                # ESLint + Prettier check (npm run format to fix)
 npm run build               # production build of shared, api (dist/) and web (dist/)
 ```
 
 ## Non-negotiables (summary — instruction.md is authoritative)
 
-- Every API route declares authorization (`requireAuth` / `requirePermission`) **and** applies record scope
+- Every API route declares authorization (`requireAuth` / `requirePermission`, or `config: { public: true }` — the API refuses to start otherwise) **and** applies record scope
   (class/subject assignment, guardian–student link). Return `NOT_FOUND` for out-of-scope records.
 - Validate every input with zod at the route boundary. Use transactions for multi-step writes.
 - Audit sensitive actions with `recordAudit` inside the same transaction. Never put passwords, tokens or free-text personal data in audit metadata or logs.

@@ -1,11 +1,10 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
+import { isoDateSchema as isoDate } from '@sms/shared';
 import type { Db } from '../../db/client.js';
 import { recordAudit } from '../../lib/audit.js';
 import { AppError } from '../../lib/errors.js';
 import { requirePermission } from '../../plugins/auth.js';
-
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD');
 
 const createYearSchema = z
   .object({

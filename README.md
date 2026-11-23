@@ -38,7 +38,8 @@ Requirements: Node.js 22 LTS (or 24 LTS), MySQL 8.0+ or MariaDB 10.6+ (WAMP's My
 ## Checks
 
 ```bash
-npm run typecheck && npm test && npm run build
+npm run lint && npm run typecheck && npm test && npm run build
+npm run test:integration   # needs a MySQL/MariaDB database named <DB_NAME>_test (or TEST_DB_NAME) — its tables are dropped
 ```
 
 See [`docs/deployment.md`](docs/deployment.md) for cPanel deployment and [`docs/architecture.md`](docs/architecture.md) for how to add a module.
