@@ -43,6 +43,11 @@ WAMP provides MySQL only; run the API with `npm run dev:api` and the web with `n
 To try the production web build under Apache, copy `apps/web/dist` to a WAMP vhost and reverse-proxy `/api` to `127.0.0.1:4000`
 (`mod_proxy`, `ProxyPass /api http://127.0.0.1:4000/api`).
 
+## Backups
+
+Daily cron `node dist/cli/backup.js` with `BACKUP_PASSPHRASE` set; copy backups off the server. Full procedure,
+restore and rehearsal: [backup-restore.md](backup-restore.md).
+
 ## Not yet implemented
 
-Signed release packages, the update client, backup/restore tooling and the health of backups — see `backlog.md` (Phase 1).
+Signed release packages and the update client — see `backlog.md` (Phase 1).

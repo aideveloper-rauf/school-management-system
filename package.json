@@ -20,7 +20,10 @@
     "setup:admin": "npm run setup:admin -w @sms/api",
     "test:integration": "npm run build -w @sms/shared && npm run test:integration -w @sms/api",
     "lint": "eslint . && prettier --check . && node scripts/check-i18n.mjs",
-    "format": "prettier --write . && eslint . --fix"
+    "format": "prettier --write . && eslint . --fix",
+    "backup": "npm run backup -w @sms/api",
+    "backup:verify": "npm run backup:verify -w @sms/api --",
+    "restore": "npm run restore -w @sms/api --"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

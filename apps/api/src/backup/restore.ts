@@ -24,7 +24,7 @@ export interface BackupSummary {
 }
 
 /** Decrypt to a private temp folder, run `fn` over the records, always clean up. */
-async function withRecords<T>(
+export async function withRecords<T>(
   file: string,
   passphrase: string,
   fn: (header: ContainerHeader, records: AsyncIterable<BackupRecord>) => Promise<T>,
@@ -34,8 +34,10 @@ async function withRecords<T>(
   try {
     const plain = path.join(tmp, 'payload.jsonl.gz');
     const header = await decryptContainer(file, passphrase, plain);
-    const lines = createInterface({ input: createReadStream(plain).pipe(createGunzip()), crlfDelay: Infinity });
+    // Open the reader only when iteration starts: readline emits lines as soon as it exists, and
+    // lines emitted before the for-await loop attaches are lost (the caller may await other work first).
     async function* records(): AsyncGenerator<BackupRecord> {
+      const lines = createInterface({ input: createReadStream(plain).pipe(createGunzip()), crlfDelay: Infinity });
       for await (const l of lines) if (l) yield JSON.parse(l) as BackupRecord;
     }
     return await fn(header, records());
@@ -182,7 +184,8 @@ export async function restoreBackup(db: Db, cfg: AppConfig, file: string, passph
         }
         for (const [t, n] of Object.entries(summary.tables)) {
           const c = await sql<{ n: number }>`SELECT COUNT(*) AS n FROM ${sql.table(t)}`.execute(conn);
-          if (Number(c.rows[0]?.n) !== n) throw new BackupError(`Row count check failed for ${t}.`);
+          if (Number(c.rows[0]?.n) !== n)
+            throw new BackupError(`Row count check failed for ${t}: expected ${n}, found ${Number(c.rows[0]?.n)}.`);
         }
         await sql`COMMIT`.execute(conn);
       } catch (e) {

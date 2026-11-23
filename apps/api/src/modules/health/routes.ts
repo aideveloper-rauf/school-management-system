@@ -18,7 +18,7 @@ export const healthRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { db }) 
 
   /** Operational status for administrators (version, schema, queue). */
   app.get('/ops/status', { preHandler: requirePermission('ops.status.read') }, async () => {
-    const [schemaVersion, queue, school] = await Promise.all([
+    const [schemaVersion, queue, school, meta] = await Promise.all([
       currentSchemaVersion(db),
       db
         .selectFrom('jobs')
@@ -26,13 +26,23 @@ export const healthRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { db }) 
         .groupBy('status')
         .execute(),
       db.selectFrom('schools').select('id').executeTakeFirst(),
+      db
+        .selectFrom('app_meta')
+        .select(['meta_key', 'meta_value'])
+        .where('meta_key', 'in', ['last_backup_at', 'last_backup_file', 'last_backup_bytes', 'restored_at', 'restored_from'])
+        .execute(),
     ]);
+    const m = Object.fromEntries(meta.map((r) => [r.meta_key, r.meta_value]));
     return {
       appVersion: APP_VERSION,
       schemaVersion,
       setupComplete: Boolean(school),
       queue: Object.fromEntries(queue.map((q) => [q.status, Number(q.count)])),
-      // TODO(phase 1): last successful backup and last update, from app_meta.
+      // File name and time only: the backup's location on disk is not exposed.
+      lastBackup: m.last_backup_at
+        ? { at: m.last_backup_at, file: m.last_backup_file ?? null, bytes: Number(m.last_backup_bytes ?? 0) }
+        : null,
+      lastRestore: m.restored_at ? { at: m.restored_at, from: m.restored_from ?? null } : null,
     };
   });
 };

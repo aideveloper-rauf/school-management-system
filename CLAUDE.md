@@ -21,6 +21,9 @@ npm test                    # shared + api unit/HTTP tests (no MySQL needed)
 npm run test:integration    # api tests against a real MySQL/MariaDB *_test database (drops its tables)
 npm run lint                # ESLint + Prettier check (npm run format to fix)
 npm run build               # production build of shared, api (dist/) and web (dist/)
+npm run backup              # encrypted backup to BACKUP_DIR (needs BACKUP_PASSPHRASE); see docs/backup-restore.md
+npm run backup:verify -- <file>   # decrypt and check a backup, writes nothing
+npm run restore -- <file>   # restore into an EMPTY database only
 ```
 
 ## Non-negotiables (summary — instruction.md is authoritative)

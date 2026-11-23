@@ -192,10 +192,21 @@ with field names only. Deletes return `204`. Request schemas live in `@sms/share
   used. Mail adapters: `file` (dev outbox under `STORAGE_DIR/outbox`) and `smtp` (nodemailer).
 - Public routes skip the session CSRF token (they never act on the session) but keep the Origin check.
 
+### Backup and restore (`src/backup/`, CLIs `backup`, `verify-backup`, `restore`)
+
+- Pure Node (no `mysqldump` needed on cPanel). One consistent snapshot (`START TRANSACTION WITH CONSISTENT SNAPSHOT`) of every
+  table except sessions, user_tokens, login_attempts, jobs and Kysely's migration tables, plus `STORAGE_DIR` minus `outbox/`.
+- Container: `SMSBAK/1` + authenticated JSON header + AES-256-GCM(gzip(JSON lines)) + tag; key = scrypt(`BACKUP_PASSPHRASE`).
+  Written as `.partial` then renamed; `app_meta.last_backup_*` + audit `backup.created`; keeps `BACKUP_KEEP` newest.
+- Restore: empty database only → decrypt to a private temp file and verify everything (counts, file hashes) → refuse a
+  newer-release backup → migrate to the backup's schema → load rows in one transaction (FK checks off) → check counts →
+  migrate to latest → move files into place → audit `backup.restored`. `GET /ops/status` reports `lastBackup`/`lastRestore`.
+- Runbook and rehearsal: [backup-restore.md](backup-restore.md).
+
 ## 6. Known gaps (tracked in backlog.md)
 
 - Field-level validation messages from the API are English validator text (translation keys only for business rules).
-- No MFA, backup/restore tooling or update client yet. The sidebar school name refreshes on the next page load after
+- No MFA, release packaging or update client yet; no admin-screen download of backups. The sidebar school name refreshes on the next page load after
   editing settings.
 - Email templates are English only; si/ta fall back to English.
 - The reset-request endpoint does a little more work for real accounts than unknown ones, so response timing may
