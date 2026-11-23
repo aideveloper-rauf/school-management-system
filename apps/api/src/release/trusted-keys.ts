@@ -13,4 +13,13 @@ export interface TrustedKey {
   publicKeyPem: string;
 }
 
-export const TRUSTED_RELEASE_KEYS: TrustedKey[] = [];
+export const TRUSTED_RELEASE_KEYS: TrustedKey[] = [
+  {
+    keyId: '64084c14f13c73d8',
+    label: 'Product team release key (2026-11-23)',
+    // Fingerprint: 6408 4c14 f13c 73d8 d267 959b 0866 edaf 8d1f b775 c17e 4189 ffc5 595e 3061 0900
+    publicKeyPem: `-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAaC5PWDCYsDnr6ZZ4B5zNf8yP3mpCiMh9I90CQas70BM=
+-----END PUBLIC KEY-----`,
+  },
+];

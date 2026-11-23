@@ -113,3 +113,15 @@ describe('release signing', () => {
     expect(isMigrationPrefix(['b'], ['a', 'b'])).toBe(false);
   });
 });
+
+describe('trusted release keys', () => {
+  it('every built-in key id matches its key, and no private key material is present', async () => {
+    const { TRUSTED_RELEASE_KEYS } = await import('./trusted-keys.js');
+    expect(TRUSTED_RELEASE_KEYS.length).toBeGreaterThan(0);
+    for (const k of TRUSTED_RELEASE_KEYS) {
+      expect(keyIdOf(k.publicKeyPem), k.label).toBe(k.keyId);
+      expect(k.publicKeyPem).toContain('BEGIN PUBLIC KEY');
+      expect(k.publicKeyPem).not.toMatch(/PRIVATE/);
+    }
+  });
+});

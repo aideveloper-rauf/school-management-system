@@ -31,6 +31,15 @@ run `node sms-1.2.0/api/cli/verify-release.js sms-1.2.0.manifest.json --public-k
 key's fingerprint: compare it **by phone or letter** with the fingerprint the product team gives you. Do not continue
 if it differs.
 
+Current product release key (since 23 November 2026), key id `64084c14f13c73d8`:
+
+```
+6408 4c14 f13c 73d8 d267 959b 0866 edaf 8d1f b775 c17e 4189 ffc5 595e 3061 0900
+```
+
+Do not trust this page alone for a first install — a changed copy of this document could show a different key. Confirm
+the fingerprint with the product team through a separate channel.
+
 ## 2. Back up (upgrades only)
 
 With the **current** release: `node --env-file=.env cli/backup.js`, then copy the new backup off the server
