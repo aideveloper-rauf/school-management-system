@@ -19,11 +19,11 @@ Detailed tasks, IDs, dependencies and exit gates for each item: [`roadmap.md`](r
 - [x] Lint/format, route-authorization startup check, shared pagination/id/date schemas (roadmap F-6, F-7)
 - [x] User management API: invite/create users, assign/revoke roles (audited), disable/enable, temporary passwords (roadmap U-1…U-3)
 - [x] Password change & reset, invitations (time-limited single-use tokens, queued email adapter: file + SMTP) (U-4…U-6)
-- [ ] Users & account UI: users page, change password, reset/accept-invite pages, forced password change screen (U-7)
+- [x] Users & account UI: users page, change password, reset/accept-invite pages, forced password change screen (U-7)
 - [x] Terms CRUD; grades, class sections, subjects, rooms, periods, calendar (API; UI is the item below) — roadmap A-1…A-4
 - [x] Foreign keys actually enforced on MySQL (migration 0003) + guard tests
 - [ ] Year rollover helper (roadmap A-5)
-- [ ] School settings UI; academic structure UI
+- [x] School settings UI; academic structure UI (A-6, A-7)
 - [ ] Audit log viewer UI; ops status UI
 - [ ] Backup/export CLI (DB dump + storage archive, encrypted) and restore runbook; record last backup in app_meta
 - [ ] Release packaging: versioned artifact + checksum + signature; manual install/upgrade guide

@@ -108,9 +108,26 @@ removes expired sessions and old login attempts.
 
 ## 4. Web internals (`apps/web/src`)
 
-- `lib/api.ts` — same-origin fetch wrapper; adds CSRF header on unsafe methods; throws `ApiError` with the server code.
-- `lib/auth.tsx` — session context (`/auth/session` on load), `can(permission)` for UI hints only.
-- `routes/nav.ts` — role-aware navigation config; `App.tsx` lazy-loads pages.
+- `lib/api.ts` — same-origin fetch wrapper; adds CSRF header on unsafe methods; throws `ApiError` with the server code;
+  `204` resolves to `undefined`.
+- `lib/auth.tsx` — session context (`/auth/session` on load), `can(permission)` for UI hints only, `refresh()`,
+  `signedOut` (explicit sign-out drops the return-to-page target so a shared device does not reopen the last user's page).
+- `lib/data.ts` — `useResource(path)` (GET + reload, abort-safe) and `useSubmit()` (busy state, translated error,
+  per-field errors from `details`). `lib/format.ts` — locale-aware date helpers.
+- `routes/` — `RequireAuth` (redirects to sign-in with a return target; shows only the forced password change while
+  `mustChangePassword`), `RequirePermission` (hides screens outside the user's menu — UX only, the API enforces),
+  `nav.ts` (role-aware menu). `App.tsx` lazy-loads every page.
+- `components/ui.tsx` — small kit on native elements (`<dialog>` as a bottom sheet on phones, labelled `Field`,
+  buttons, alerts). `components/CrudSection.tsx` — config-driven list + create/edit/delete used by the academic setup
+  tabs (PATCH sends only changed fields; rows stack into labelled blocks on phones).
+- Screens: sign in, reset password (`/#/reset-password[?token]`), accept invitation (`/#/accept-invite?token`), account
+  (change password), users & roles, academic setup (years/terms, grades + subjects, subjects, classes, rooms, bell
+  schedule, calendar; tab in `?tab=`), school settings.
+- Visual system ("school register"): paper `#f6f7f4`, ink `#1f2a44`, register green `#2f6b4f`, spine `#24513d`,
+  maroon `#8a2335` for destructive/warning only. No web fonts or icon library (system Noto stack covers si/ta).
+- Bundle rule: the web app may import only zod-free modules from `@sms/shared` at runtime (`roles`, `locales`,
+  `constants`, `api`); a test guards `constants.ts`. `npm run lint` also fails on literal `t('…')` keys missing from
+  `en.json` (`scripts/check-i18n.mjs`).
 - `i18n/` — i18next with `en` complete and `si`/`ta` falling back to English per key. API error messages are
   translation keys, so the UI translates them.
 - `HashRouter` is used so the static build works on any host; switch to `BrowserRouter` once the `.htaccess`
@@ -168,8 +185,9 @@ with field names only. Deletes return `204`. Request schemas live in `@sms/share
 
 ## 6. Known gaps (tracked in backlog.md)
 
-- No user-management / password screens in the web app yet (the API exists; links point at `/#/accept-invite` and
-  `/#/reset-password`, which the UI must add). No MFA, backup/restore tooling or update client yet.
+- Field-level validation messages from the API are English validator text (translation keys only for business rules).
+- No MFA, backup/restore tooling or update client yet. The sidebar school name refreshes on the next page load after
+  editing settings.
 - Email templates are English only; si/ta fall back to English.
 - The reset-request endpoint does a little more work for real accounts than unknown ones, so response timing may
   differ slightly; the body and status are identical, and requests are rate-limited.

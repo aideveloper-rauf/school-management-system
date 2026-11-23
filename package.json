@@ -19,7 +19,7 @@
     "db:migrate": "npm run db:migrate -w @sms/api",
     "setup:admin": "npm run setup:admin -w @sms/api",
     "test:integration": "npm run build -w @sms/shared && npm run test:integration -w @sms/api",
-    "lint": "eslint . && prettier --check .",
+    "lint": "eslint . && prettier --check . && node scripts/check-i18n.mjs",
     "format": "prettier --write . && eslint . --fix"
   },
   "devDependencies": {

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { LOCALES } from '../locales.js';
 import { isoDateSchema } from './common.js';
+import { CALENDAR_EVENT_KINDS } from '../constants.js';
 
 /**
  * Request schemas for the academic structure. Everything is school-configurable:
@@ -129,8 +130,6 @@ export const createPeriodSchema = periodFields
 export const updatePeriodSchema = nonEmpty(periodFields);
 
 // School calendar ------------------------------------------------------------
-export const CALENDAR_EVENT_KINDS = ['holiday', 'term_break', 'exam', 'event'] as const;
-export type CalendarEventKind = (typeof CALENDAR_EVENT_KINDS)[number];
 
 export const calendarEventFields = z.object({
   academicYearId: z.number().int().positive().nullable(),

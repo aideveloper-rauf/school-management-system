@@ -3,9 +3,7 @@ import { LOCALES } from '../locales.js';
 import { ROLES, type Role } from '../roles.js';
 import { paginationQuerySchema } from './common.js';
 import { newPasswordSchema } from './auth.js';
-
-export const USER_STATUSES = ['active', 'disabled', 'invited'] as const;
-export type UserStatus = (typeof USER_STATUSES)[number];
+import { USER_STATUSES, isEmailIdentifier, type UserStatus } from '../constants.js';
 
 /** Identifiers are an email or a school-issued username; stored lower-case. */
 export const identifierSchema = z
@@ -15,8 +13,6 @@ export const identifierSchema = z
   .min(3)
   .max(191)
   .regex(/^[a-z0-9._@+-]+$/, 'Letters, digits and . _ @ + - only');
-
-export const isEmailIdentifier = (identifier: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
 
 const rolesSchema = z
   .array(z.enum(ROLES))
