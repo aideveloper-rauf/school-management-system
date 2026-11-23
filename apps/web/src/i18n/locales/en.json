@@ -1,0 +1,54 @@
+{
+  "app": { "name": "School Management System" },
+  "language": { "label": "Language", "en": "English", "si": "සිංහල", "ta": "தமிழ்" },
+  "auth": {
+    "title": "Sign in",
+    "identifier": "Email or username",
+    "password": "Password",
+    "submit": "Sign in",
+    "signingIn": "Signing in…",
+    "logout": "Sign out"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "academic": "Academic structure",
+    "students": "Students",
+    "attendance": "Attendance",
+    "timetable": "Timetable",
+    "exams": "Exams & results",
+    "results": "My results",
+    "announcements": "Announcements",
+    "users": "Users & roles",
+    "audit": "Audit log",
+    "settings": "School settings",
+    "status": "System status"
+  },
+  "dashboard": {
+    "welcome": "Welcome, {{name}}",
+    "roles": "Signed in as: {{roles}}",
+    "comingSoon": "This section is part of the build plan and is not available yet."
+  },
+  "roles": {
+    "school_admin": "School administrator",
+    "principal": "Principal",
+    "academic_coordinator": "Academic coordinator",
+    "teacher": "Teacher",
+    "registrar": "Registrar",
+    "student": "Student",
+    "guardian": "Parent / guardian"
+  },
+  "errors": {
+    "invalidCredentials": "The email/username or password is incorrect.",
+    "tooManyAttempts": "Too many attempts. Please wait a few minutes and try again.",
+    "rateLimited": "Too many requests. Please slow down.",
+    "unauthenticated": "Please sign in.",
+    "forbidden": "You do not have access to this.",
+    "notFound": "Not found.",
+    "validation": "Please check the highlighted fields.",
+    "csrf": "Your session expired. Please reload the page.",
+    "setupRequired": "This school has not been set up yet.",
+    "internal": "Something went wrong. Please try again.",
+    "network": "Cannot reach the server. Check your connection."
+  },
+  "common": { "loading": "Loading…", "notFoundPage": "Page not found", "backHome": "Back to dashboard" }
+}

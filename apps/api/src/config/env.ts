@@ -1,0 +1,39 @@
+import { z } from 'zod';
+
+const bool = z
+  .enum(['true', 'false'])
+  .default('false')
+  .transform((v) => v === 'true');
+
+const envSchema = z.object({
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  HOST: z.string().default('127.0.0.1'),
+  PORT: z.coerce.number().int().positive().default(4000),
+  APP_ORIGIN: z.string().url().default('http://localhost:5173'),
+  DB_HOST: z.string().default('127.0.0.1'),
+  DB_PORT: z.coerce.number().int().positive().default(3306),
+  DB_NAME: z.string().min(1).default('school_sms'),
+  DB_USER: z.string().min(1).default('school_sms'),
+  DB_PASSWORD: z.string().default(''),
+  SESSION_TTL_MINUTES: z.coerce.number().int().min(5).max(7 * 24 * 60).default(480),
+  STORAGE_DIR: z.string().default('../../storage'),
+  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
+  COOKIE_SECURE: bool,
+  FEATURE_AI: bool,
+});
+
+export type AppConfig = z.infer<typeof envSchema>;
+
+export function loadConfig(source: NodeJS.ProcessEnv = process.env): AppConfig {
+  const parsed = envSchema.safeParse(source);
+  if (!parsed.success) {
+    // Print only variable names, never values (they may be secrets).
+    const names = parsed.error.issues.map((i) => i.path.join('.')).join(', ');
+    throw new Error(`Invalid environment configuration: ${names}`);
+  }
+  const cfg = parsed.data;
+  if (cfg.NODE_ENV === 'production' && !cfg.COOKIE_SECURE) {
+    throw new Error('COOKIE_SECURE must be true in production (serve over HTTPS).');
+  }
+  return cfg;
+}

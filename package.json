@@ -1,0 +1,22 @@
+{
+  "name": "school-management-system",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Sri Lanka School Management System — per-school installable application (web + API).",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22.12 <23 || >=24"
+  },
+  "scripts": {
+    "dev:api": "npm run dev -w @sms/api",
+    "dev:web": "npm run dev -w @sms/web",
+    "build": "npm run build -w @sms/shared && npm run build -w @sms/api && npm run build -w @sms/web",
+    "typecheck": "npm run build -w @sms/shared && npm run typecheck -w @sms/api && npm run typecheck -w @sms/web",
+    "test": "npm run build -w @sms/shared && npm run test -w @sms/shared && npm run test -w @sms/api",
+    "db:migrate": "npm run db:migrate -w @sms/api",
+    "setup:admin": "npm run setup:admin -w @sms/api"
+  }
+}
