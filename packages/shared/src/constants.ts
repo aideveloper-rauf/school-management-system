@@ -11,3 +11,17 @@ export const isEmailIdentifier = (identifier: string): boolean => /^[^\s@]+@[^\s
 
 export const CALENDAR_EVENT_KINDS = ['holiday', 'term_break', 'exam', 'event'] as const;
 export type CalendarEventKind = (typeof CALENDAR_EVENT_KINDS)[number];
+
+/**
+ * Audit log categories → action prefixes. Shared so the API filter and the web filter agree.
+ * Every audited action must start with one of these prefixes (a test checks the API's actions).
+ */
+export const AUDIT_CATEGORIES = {
+  signIn: ['auth.'],
+  people: ['user.', 'role.', 'setup.'],
+  academic: ['academic_year.', 'term.', 'grade.', 'subject.', 'room.', 'class_section.', 'period.', 'calendar_event.'],
+  settings: ['school.'],
+  backups: ['backup.'],
+} as const;
+export type AuditCategory = keyof typeof AUDIT_CATEGORIES;
+export const AUDIT_CATEGORY_KEYS = Object.keys(AUDIT_CATEGORIES) as AuditCategory[];

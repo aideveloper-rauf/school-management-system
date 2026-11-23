@@ -169,7 +169,7 @@ export function DescriptionList({ items }: { items: Array<{ label: string; value
   return (
     <dl className="divide-y divide-line">
       {items.map((it) => (
-        <div key={it.label} className="grid grid-cols-[minmax(0,10rem)_1fr] gap-4 py-2.5 text-sm">
+        <div key={it.label} className="grid grid-cols-[minmax(6.5rem,32%)_minmax(0,1fr)] gap-4 py-2.5 text-sm">
           <dt className="text-fg-muted">{it.label}</dt>
           <dd className="min-w-0 text-fg">{it.value}</dd>
         </div>

@@ -137,7 +137,17 @@ describe('login → session → logout (real MySQL)', () => {
     expect(body).toMatchObject({ page: 2, pageSize: 1 });
     expect(body.total).toBeGreaterThan(1);
     expect(body.items).toHaveLength(1);
-    expect(Object.keys(body.items[0]).sort()).toEqual(['action', 'actorUserId', 'createdAt', 'entityId', 'entityType', 'id']);
+    expect(Object.keys(body.items[0]).sort()).toEqual([
+      'action',
+      'actor',
+      'createdAt',
+      'entityId',
+      'entityType',
+      'id',
+      'ip',
+      'metadata',
+      'requestId',
+    ]);
     expect(new Date(body.items[0].createdAt).toISOString()).toBe(body.items[0].createdAt);
 
     const tooBig = await app.inject({ method: 'GET', url: '/api/v1/audit-events?pageSize=1000', cookies: { [SESSION_COOKIE]: cookie! } });

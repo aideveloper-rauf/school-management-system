@@ -24,7 +24,7 @@ Detailed tasks, IDs, dependencies and exit gates for each item: [`roadmap.md`](r
 - [x] Foreign keys actually enforced on MySQL (migration 0003) + guard tests
 - [ ] Year rollover helper (roadmap A-5)
 - [x] School settings UI; academic structure UI (A-6, A-7)
-- [ ] Audit log viewer UI; ops status UI
+- [x] Audit log viewer UI; ops status UI (O-1, O-2)
 - [x] Backup/export CLI (DB dump + storage archive, encrypted) and restore runbook; record last backup in app_meta (O-3, O-4; full school data export for offboarding O-5 still open)
 - [ ] Release packaging: versioned artifact + checksum + signature; manual install/upgrade guide
 - [ ] Validate deployment on the target cPanel plan; update deployment.md with measured limits

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { MAX_PAGE_SIZE, type Paginated } from '../api.js';
+import { AUDIT_CATEGORY_KEYS, type AuditCategory } from '../constants.js';
 
 /** `?page=&pageSize=` for every list endpoint. Values arrive as strings, so coerce. */
 export const paginationQuerySchema = z.object({
@@ -31,12 +32,28 @@ export function toPaginated<T>(items: T[], total: number | bigint | string, q: P
   return { items, page: q.page, pageSize: q.pageSize, total: Number(total) };
 }
 
-/** One audit log row as returned by GET /audit-events. Metadata is intentionally not listed. */
+/** GET /audit-events filters. Times are ISO date-times so the browser can send its own local day bounds. */
+export const auditQuerySchema = paginationQuerySchema.extend({
+  category: z.enum(AUDIT_CATEGORY_KEYS as [AuditCategory, ...AuditCategory[]]).optional(),
+  action: z.string().max(100).optional(),
+  /** Matches the acting person's name or email/username. */
+  q: z.string().trim().max(100).optional(),
+  actorUserId: z.coerce.number().int().positive().optional(),
+  entityType: z.string().max(64).optional(),
+  entityId: z.string().max(64).optional(),
+  from: z.iso.datetime({ offset: true }).optional(),
+  to: z.iso.datetime({ offset: true }).optional(),
+});
+
+/** One audit log entry. Metadata holds ids, field names and reasons only — never passwords or free text. */
 export interface AuditEventItem {
   id: number;
-  actorUserId: number | null;
   action: string;
+  createdAt: string;
+  actor: { id: number; displayName: string; identifier: string } | null;
   entityType: string | null;
   entityId: string | null;
-  createdAt: string;
+  metadata: Record<string, unknown> | null;
+  ip: string | null;
+  requestId: string | null;
 }

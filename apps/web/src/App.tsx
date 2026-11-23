@@ -19,12 +19,16 @@ const AcceptInvitePage = lazy(() => import('./pages/account/AcceptInvitePage'));
 const UsersPage = lazy(() => import('./pages/users/UsersPage'));
 const AcademicPage = lazy(() => import('./pages/academic/AcademicPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const AuditPage = lazy(() => import('./pages/AuditPage'));
+const StatusPage = lazy(() => import('./pages/StatusPage'));
 
 /** Built screens by nav path; the rest show a "not available yet" placeholder. */
 const PAGES: Record<string, ComponentType> = {
   '/users': UsersPage,
   '/academic': AcademicPage,
   '/settings': SettingsPage,
+  '/audit': AuditPage,
+  '/status': StatusPage,
 };
 
 export function App() {

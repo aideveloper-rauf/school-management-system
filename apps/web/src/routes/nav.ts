@@ -73,8 +73,8 @@ export const NAV_GROUPS: NavGroup[] = [
       { path: '/academic', labelKey: 'nav.academic', icon: BookOpenCheck, anyOf: ['academic.structure.read'] },
       { path: '/users', labelKey: 'nav.users', icon: Users, anyOf: ['users.read'] },
       { path: '/settings', labelKey: 'nav.settings', icon: Settings, anyOf: ['school.settings.read'] },
-      { path: '/audit', labelKey: 'nav.audit', icon: ScrollText, anyOf: ['audit.read'], soon: true },
-      { path: '/status', labelKey: 'nav.status', icon: Activity, anyOf: ['ops.status.read'], soon: true },
+      { path: '/audit', labelKey: 'nav.audit', icon: ScrollText, anyOf: ['audit.read'] },
+      { path: '/status', labelKey: 'nav.status', icon: Activity, anyOf: ['ops.status.read'] },
     ],
   },
 ];

@@ -192,6 +192,16 @@ with field names only. Deletes return `204`. Request schemas live in `@sms/share
   used. Mail adapters: `file` (dev outbox under `STORAGE_DIR/outbox`) and `smtp` (nodemailer).
 - Public routes skip the session CSRF token (they never act on the session) but keep the Origin check.
 
+### Audit log and system status
+
+- `GET /audit-events` (audit.read): newest first; filters `category` (prefix groups in `AUDIT_CATEGORIES`, shared with the web),
+  `action`, `q` (person name/identifier), `actorUserId`, `entityType`+`entityId`, `from`/`to` (ISO times; the browser sends local
+  day bounds). Items carry the actor, record, metadata (field names/ids only), IP and request id. A test fails if an audited
+  action fits no category. Labels live in `en.json` under `audit.actions` (dots → underscores; raw code as fallback).
+- `GET /ops/status` (ops.status.read) adds `jobsOverdue` (pending jobs >15 min past due ⇒ the cron job is not running),
+  `mailTransport`, `environment`, `serverTime`, `lastBackup`, `lastRestore`. The status screen turns these into a
+  "needs attention" list with the fix for each (no backup / stale >26 h, overdue or failed jobs, email off in production).
+
 ### Backup and restore (`src/backup/`, CLIs `backup`, `verify-backup`, `restore`)
 
 - Pure Node (no `mysqldump` needed on cPanel). One consistent snapshot (`START TRANSACTION WITH CONSISTENT SNAPSHOT`) of every

@@ -55,7 +55,7 @@ export async function buildApp({ config, db, logger = true }: BuildAppOptions): 
     async (v1) => {
       // Fail fast at startup if any API route forgets to declare its authorization.
       v1.addHook('onRoute', assertRouteDeclaresAuth);
-      await v1.register(healthRoutes, { db });
+      await v1.register(healthRoutes, { db, config });
       await v1.register(authRoutes, { db, config });
       await v1.register(schoolRoutes, { db });
       await v1.register(academicRoutes, { db });

@@ -39,7 +39,8 @@ for (const file of files) {
   const check = (k) => !permissions.has(k) && !has(k) && missing.add(`${k}  (${where})`);
   for (const m of src.matchAll(/\bt\(\s*'([A-Za-z0-9_.]+)'/g)) check(m[1]);
   for (const m of src.matchAll(/(?:labelKey|titleKey): '([A-Za-z0-9_.]+)'/g)) check(m[1]);
-  for (const m of src.matchAll(keyLike)) check(m[1]);
+  // Key-like strings compared with === / !== are data (e.g. audit action codes), not translation lookups.
+  for (const m of src.matchAll(keyLike)) if (!/[!=]==\s*$/.test(src.slice(Math.max(0, m.index - 6), m.index))) check(m[1]);
 }
 
 // Dynamic lookups by role name.
