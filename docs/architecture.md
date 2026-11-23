@@ -213,10 +213,21 @@ with field names only. Deletes return `204`. Request schemas live in `@sms/share
   migrate to latest → move files into place → audit `backup.restored`. `GET /ops/status` reports `lastBackup`/`lastRestore`.
 - Runbook and rehearsal: [backup-restore.md](backup-restore.md).
 
+### Releases (`scripts/release/`, `src/release/`)
+
+- `npm run release` bundles the API with esbuild (ESM, code-split, createRequire banner) into `api/server.js` + `api/cli/*.js`
+  — no node_modules on the server — plus `web/`, `docs/` and `release.json`; tars it and writes a manifest (version,
+  migrations, Node range, archive + per-file SHA-256, key id) signed with Ed25519. Refuses dirty trees (signed), version
+  mismatches and private keys inside the repo.
+- Trust: `TRUSTED_RELEASE_KEYS` compiled into each release (empty until the product team generates its key); a first
+  install may pass `--public-key` after an out-of-band fingerprint check. `verify-release` checks signature, archive and
+  extracted files; `upgrade-check` refuses a database newer than the release, stale/missing backups and old Node.
+- Guide: [upgrade.md](upgrade.md).
+
 ## 6. Known gaps (tracked in backlog.md)
 
 - Field-level validation messages from the API are English validator text (translation keys only for business rules).
-- No MFA, release packaging or update client yet; no admin-screen download of backups. The sidebar school name refreshes on the next page load after
+- No MFA, maintenance mode or in-app update client yet; no real release signing key generated yet; no admin-screen download of backups. The sidebar school name refreshes on the next page load after
   editing settings.
 - Email templates are English only; si/ta fall back to English.
 - The reset-request endpoint does a little more work for real accounts than unknown ones, so response timing may

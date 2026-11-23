@@ -79,5 +79,14 @@ jobs:
       - name: Production build
         run: npm run build
 
+      - name: Release package builds and runs (unsigned)
+        run: |
+          npm run release -- --unsigned --skip-build
+          mkdir -p /tmp/pkg && tar -xzf release/sms-*.tar.gz -C /tmp/pkg
+          test ! -d /tmp/pkg/sms-*/api/node_modules
+          # The bundled verifier must load and must refuse an unsigned package.
+          node /tmp/pkg/sms-*/api/cli/verify-release.js release/sms-*.manifest.json 2>&1 | tee /tmp/verify.txt || true
+          grep -q "Signature file .* is missing" /tmp/verify.txt
+
       - name: Dependency audit (runtime dependencies)
         run: npm audit --omit=dev --audit-level=high

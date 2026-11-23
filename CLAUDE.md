@@ -24,6 +24,8 @@ npm run build               # production build of shared, api (dist/) and web (d
 npm run backup              # encrypted backup to BACKUP_DIR (needs BACKUP_PASSPHRASE); see docs/backup-restore.md
 npm run backup:verify -- <file>   # decrypt and check a backup, writes nothing
 npm run restore -- <file>   # restore into an EMPTY database only
+npm run release -- --key <private key file>   # signed release package in release/ (see docs/upgrade.md)
+npm run release:keygen -- --out <file outside repo>   # one-time signing key; add public key to trusted-keys.ts
 ```
 
 ## Non-negotiables (summary — instruction.md is authoritative)

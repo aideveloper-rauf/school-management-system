@@ -48,6 +48,12 @@ To try the production web build under Apache, copy `apps/web/dist` to a WAMP vho
 Daily cron `node dist/cli/backup.js` with `BACKUP_PASSPHRASE` set; copy backups off the server. Full procedure,
 restore and rehearsal: [backup-restore.md](backup-restore.md).
 
+## Installing from a release package
+
+Production installs use a signed package (no `npm install` on the server): verify it, then follow
+[upgrade.md](upgrade.md). In that layout the API root is `sms-<version>/api`, the startup file is `server.js`, and the
+CLIs are `node cli/<name>.js` (instead of `dist/cli/...`).
+
 ## Not yet implemented
 
-Signed release packages and the update client — see `backlog.md` (Phase 1).
+In-app update client and maintenance mode — see `backlog.md` (Phase 1).
