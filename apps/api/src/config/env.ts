@@ -33,6 +33,10 @@ const envSchema = z.object({
   SMTP_SECURE: bool,
   SMTP_USER: z.string().default(''),
   SMTP_PASSWORD: z.string().default(''),
+  // Backups: encrypted with a passphrase the school keeps (never stored by the product).
+  BACKUP_DIR: z.string().default('../../backups'),
+  BACKUP_KEEP: z.coerce.number().int().min(1).max(365).default(14),
+  BACKUP_PASSPHRASE: z.string().default(''),
 });
 
 export type AppConfig = z.infer<typeof envSchema>;
