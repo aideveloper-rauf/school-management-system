@@ -46,7 +46,7 @@ Detailed tasks, IDs, dependencies and exit gates for each item: [`roadmap.md`](r
 
 ## Phase 4 — Family & certificates
 - [x] Student and guardian portals (released results only) + guardian/student sign-in onboarding (G-3)
-- [ ] Certificates: templates, unique serials, issue/revoke log, minimal public verification
+- [x] Certificates: templates, unique serials, issue/revoke log, minimal public verification (print-to-PDF; no server PDF yet)
 - [ ] Notifications (email/SMS adapters via queue)
 
 ## Phase 5 — Analytics & optional AI (only after core is stable)

@@ -32,6 +32,9 @@ const LearningPage = lazy(() => import('./pages/learning/LearningPage'));
 const QuestionsPage = lazy(() => import('./pages/questions/QuestionsPage'));
 const ExamsPage = lazy(() => import('./pages/exams/ExamsPage'));
 const ResultsPage = lazy(() => import('./pages/results/ResultsPage'));
+const CertificatesPage = lazy(() => import('./pages/certificates/CertificatesPage'));
+const VerifyPage = lazy(() => import('./pages/certificates/VerifyPage'));
+const PrintCertificatePage = lazy(() => import('./pages/certificates/PrintCertificatePage'));
 
 /** Built screens by nav path; the rest show a "not available yet" placeholder. */
 const PAGES: Record<string, ComponentType> = {
@@ -51,6 +54,7 @@ const PAGES: Record<string, ComponentType> = {
   '/questions': QuestionsPage,
   '/exams': ExamsPage,
   '/results': ResultsPage,
+  '/certificates': CertificatesPage,
 };
 
 export function App() {
@@ -70,7 +74,9 @@ export function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/accept-invite" element={<AcceptInvitePage />} />
+              <Route path="/verify" element={<VerifyPage />} />
               <Route element={<RequireAuth />}>
+                <Route path="print/certificate/:id" element={<PrintCertificatePage />} />
                 <Route element={<AppShell />}>
                   <Route index element={<DashboardPage />} />
                   <Route path="account" element={<AccountPage />} />

@@ -49,6 +49,9 @@ export const PERMISSIONS = [
   'results.approve',
   'results.publish',
   'results.read.own',
+  // Certificates
+  'certificates.issue',
+  'certificates.revoke',
   // Communication
   'announcements.publish',
   'announcements.read',
@@ -92,6 +95,8 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'marks.moderate',
     'results.approve',
     'results.publish',
+    'certificates.issue',
+    'certificates.revoke',
     'announcements.publish',
   ],
   academic_coordinator: [
@@ -118,7 +123,14 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'questions.author',
     'marks.enter.scoped',
   ],
-  registrar: [...READ_BASICS, 'academic.structure.read', 'students.read.all', 'students.manage', 'guardians.link.manage'],
+  registrar: [
+    ...READ_BASICS,
+    'academic.structure.read',
+    'students.read.all',
+    'students.manage',
+    'guardians.link.manage',
+    'certificates.issue',
+  ],
   student: [...READ_BASICS, 'learning.read.own', 'results.read.own'],
   guardian: [...READ_BASICS, 'learning.read.own', 'results.read.own'],
 };

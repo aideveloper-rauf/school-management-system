@@ -20,6 +20,7 @@ import { announcementRoutes } from './modules/announcements/routes.js';
 import { learningRoutes } from './modules/learning/routes.js';
 import { questionRoutes } from './modules/questions/routes.js';
 import { examRoutes } from './modules/exams/routes.js';
+import { certificateRoutes } from './modules/certificates/routes.js';
 
 export interface BuildAppOptions {
   config: AppConfig;
@@ -75,6 +76,7 @@ export async function buildApp({ config, db, logger = true }: BuildAppOptions): 
       await v1.register(learningRoutes, { db, config });
       await v1.register(questionRoutes, { db });
       await v1.register(examRoutes, { db });
+      await v1.register(certificateRoutes, { db });
     },
     { prefix: API_PREFIX },
   );

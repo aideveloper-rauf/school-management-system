@@ -235,3 +235,41 @@ export const publishResultsSchema = z.object({
   /** Required when a release already exists (a correction). */
   reason: z.string().trim().min(1).max(500).optional(),
 });
+
+// Certificates (roadmap K-1…K-3) ---------------------------------------------
+export const CERTIFICATE_PLACEHOLDERS = [
+  'student_name',
+  'name_with_initials',
+  'admission_no',
+  'class',
+  'issued_on',
+  'details',
+  'school',
+] as const;
+export const certificateTemplateSchema = z.object({
+  name: z.string().trim().min(1).max(128),
+  locale: z.enum(['en', 'si', 'ta']),
+  title: z.string().trim().min(1).max(191),
+  body: z.string().trim().min(1).max(5_000),
+  isActive: z.boolean().default(true),
+});
+export const issueCertificateSchema = z.object({
+  templateId: idSchema,
+  studentIds: z.array(idSchema).min(1).max(200),
+  issuedOn: isoDateSchema,
+  /** Fills {{details}}, e.g. "First place, 100 m". Same text for every student in this batch. */
+  details: z.string().trim().max(500).nullable().default(null),
+});
+export const revokeCertificateSchema = z.object({ reason: z.string().trim().min(1).max(500) });
+export const certificateListQuerySchema = paginationQuerySchema.extend({
+  studentId: z.coerce.number().int().positive().optional(),
+  q: z.string().trim().max(64).optional(),
+  status: z.enum(['issued', 'revoked']).optional(),
+});
+export const certificateSerialSchema = z.object({
+  serial: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z0-9-]{8,40}$/),
+});

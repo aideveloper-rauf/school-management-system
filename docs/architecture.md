@@ -143,7 +143,7 @@ removes expired sessions and old login attempts.
 - `HashRouter` is used so the static build works on any host; switch to `BrowserRouter` once the `.htaccess`
   rewrite is confirmed on the target plan.
 
-## 5. Current schema (migrations 0001–0010)
+## 5. Current schema (migrations 0001–0011)
 
 - **0001 foundation:** `schools`, `users`, `user_roles`, `sessions`, `login_attempts`, `audit_events`, `academic_years`,
   `terms`, `jobs`, `app_meta`, plus Kysely's `schema_migrations` tables.
@@ -159,6 +159,7 @@ removes expired sessions and old login attempts.
 - **0009 question bank:** `questions`, `question_versions`, `exam_papers`, `exam_paper_versions`, `exam_paper_items`.
 - **0010 exams:** `grading_scales`, `grading_scale_versions`, `exam_series`, `exam_components`, `mark_sheets`, `marks`,
   `mark_changes`, `result_releases`.
+- **0011 certificates:** `certificate_templates`, `certificates`.
 - **0003:** adds 0001's foreign keys. 0001 declared them inline (`.references()`), which **MySQL silently ignores**
   (MariaDB honours them, so 0003 skips existing keys). Always use `.addForeignKeyConstraint()`; ESLint rejects
   `.references()` in migrations and a schema test fails if any `*_id`/`*_by` column lacks a foreign key.
@@ -328,6 +329,18 @@ The default calculation rules are documented in `calculate.ts` and must be confi
   Existing accounts are never taken over (409).
 - Web: students and guardians get a home with attendance (30 days), today's lessons, work due, notices and released
   results, with a child switcher; teachers get today's registers and lessons on top of the staff dashboard.
+
+### Certificates (`modules/certificates/`, migration 0011)
+
+- Templates per language with placeholders (`{{student_name}}`, `{{name_with_initials}}`, `{{admission_no}}`, `{{class}}`,
+  `{{issued_on}}`, `{{details}}`, `{{school}}`). Issuing (`certificates.issue`: registrar, principal) renders and **freezes**
+  title and body on the certificate; later template edits never change it.
+- Serial `<SCHOOL>-<YEAR>-<6 digits>-<4 random>`, unique. Revoke (`certificates.revoke`: principal) keeps the row with
+  who/when/why (reason not in audit).
+- Public check `GET /public/certificates/:serial` (no sign-in, 30/min): validity, title, holder's name (with initials),
+  issue/revoke date, school — nothing else. Web: `/#/verify?serial=`. Printing: `/#/print/certificate/:id` (full page; the
+  browser's "Save as PDF" gives a PDF). No server-side PDF generation yet.
+- Families: `GET /me/certificates?studentId`, `GET /certificates/:id` (holder or verified guardian).
 
 ## 6. Known gaps (tracked in backlog.md)
 

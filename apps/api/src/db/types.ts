@@ -575,7 +575,40 @@ export interface ResultReleaseTable {
   published_at: CreatedAt;
 }
 
+// Certificates (migration 0011) ---------------------------------------------
+export interface CertificateTemplateTable {
+  id: Generated<number>;
+  name: string;
+  locale: string;
+  title: string;
+  /** Text with {{student_name}}, {{admission_no}}, {{class}}, {{issued_on}}, {{details}}, {{school}}. */
+  body: string;
+  is_active: Generated<number>;
+  created_by: number | null;
+  created_at: CreatedAt;
+  updated_at: UpdatedAt;
+}
+export interface CertificateTable {
+  id: Generated<number>;
+  serial: string;
+  template_id: number;
+  student_id: number;
+  locale: string;
+  issued_on: string;
+  /** Rendered and frozen at issue time. */
+  title: string;
+  body: string;
+  status: Generated<'issued' | 'revoked'>;
+  issued_by: number | null;
+  issued_at: CreatedAt;
+  revoked_by: number | null;
+  revoked_at: Date | null;
+  revoke_reason: string | null;
+}
+
 export interface Database {
+  certificate_templates: CertificateTemplateTable;
+  certificates: CertificateTable;
   grading_scales: GradingScaleTable;
   grading_scale_versions: GradingScaleVersionTable;
   exam_series: ExamSeriesTable;

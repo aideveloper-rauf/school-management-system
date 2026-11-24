@@ -36,7 +36,8 @@
     "guardians": "Guardians",
     "imports": "Import data",
     "learning": "Learning",
-    "questions": "Question bank"
+    "questions": "Question bank",
+    "certificates": "Certificates"
   },
   "dashboard": {
     "welcome": "Welcome, {{name}}",
@@ -473,7 +474,8 @@
     "resultsNotApproved": "Every mark sheet for this class must be approved before publishing.",
     "guardianNeedsEmail": "Add the guardian's email address first; the invitation is sent there.",
     "guardianNotVerified": "Verify at least one of this guardian's links before inviting them.",
-    "accountExists": "An account with this email or username already exists. Ask an administrator to link it."
+    "accountExists": "An account with this email or username already exists. Ask an administrator to link it.",
+    "alreadyRevoked": "This certificate is already revoked."
   },
   "common": {
     "loading": "Loading…",
@@ -576,7 +578,8 @@
       "timetable": "Timetable",
       "communication": "Announcements",
       "learning": "Learning",
-      "exams": "Exams"
+      "exams": "Exams",
+      "certificates": "Certificates"
     },
     "entities": {
       "user": "User",
@@ -601,7 +604,8 @@
       "paper": "Exam paper",
       "grading_scale": "Grading scale",
       "exam_series": "Exam",
-      "exam_component": "Exam paper"
+      "exam_component": "Exam paper",
+      "certificate_template": "Certificate template"
     },
     "metaKeys": {
       "fields": "Changed fields",
@@ -656,7 +660,9 @@
       "componentId": "Paper id",
       "gradeId": "Grade id",
       "changed": "Marks changed",
-      "releaseId": "Release id"
+      "releaseId": "Release id",
+      "certificateId": "Certificate id",
+      "templateId": "Template id"
     },
     "fieldNames": {
       "displayName": "Full name",
@@ -798,7 +804,11 @@
       "results_republished": "Corrected results published",
       "results_viewed": "Released results viewed",
       "guardian_invited": "Guardian invited to sign in",
-      "student_account_created": "Student sign-in created"
+      "student_account_created": "Student sign-in created",
+      "certificate_template_created": "Certificate template created",
+      "certificate_template_updated": "Certificate template changed",
+      "certificate_issued": "Certificate issued",
+      "certificate_revoked": "Certificate revoked"
     }
   },
   "status": {
@@ -1565,5 +1575,64 @@
     "grade": "Grade",
     "rankOf": "{{rank}} of {{size}}",
     "scale": "Grades ({{name}})"
+  },
+  "certificates": {
+    "title": "Certificates",
+    "intro": "Issue certificates from templates. Each has a unique serial anyone can check on the public verification page.",
+    "tabs": {
+      "issued": "Issued",
+      "issue": "Issue",
+      "templates": "Templates"
+    },
+    "search": "Search by name or serial",
+    "none": "No certificates issued yet.",
+    "statuses": {
+      "issued": "Valid",
+      "revoked": "Revoked"
+    },
+    "serial": "Serial number",
+    "verifyAt": "Check at",
+    "signature": "Principal",
+    "revokedStamp": "REVOKED",
+    "revokedOn": "Revoked on {{date}}",
+    "revokeReason": "Reason for revoking",
+    "revoke": "Revoke",
+    "revoked": "Certificate revoked.",
+    "template": "Template",
+    "issuedOn": "Date of issue",
+    "details": "Details",
+    "detailsHint": "Fills the details placeholder in the template, e.g. 'won first place in the 100 m'.",
+    "chooseStudents_one": "{{count}} student chosen",
+    "chooseStudents_other": "{{count}} students chosen",
+    "selectAll": "Select all",
+    "selectNone": "Select none",
+    "issue_one": "Issue {{count}} certificate",
+    "issue_other": "Issue {{count}} certificates",
+    "issued_one": "{{count}} certificate issued.",
+    "issued_other": "{{count}} certificates issued.",
+    "needTemplate": "Create a certificate template first.",
+    "newTemplate": "New template",
+    "editTemplate": "Edit template",
+    "templateHelp": "Write the wording once; student details are filled in when a certificate is issued.",
+    "noTemplates": "No templates yet.",
+    "inactive": "Not in use",
+    "templateName": "Template name",
+    "certTitle": "Certificate title",
+    "body": "Wording",
+    "placeholders": "You can use: {{list}}",
+    "active": "In use",
+    "frozenNote": "Changing a template does not change certificates already issued.",
+    "sampleBody": "This is to certify that {{student_name}} ({{admission_no}}) of {{class}} {{details}}."
+  },
+  "verify": {
+    "title": "Verify a certificate",
+    "intro": "Enter the serial number printed on the certificate.",
+    "check": "Check",
+    "notFound": "No certificate with this serial number. Check it and try again.",
+    "valid": "Valid certificate",
+    "revoked": "This certificate has been revoked",
+    "holder": "Issued to {{name}}",
+    "issued": "Issued by {{school}} on {{date}}",
+    "revokedOn": "Revoked on {{date}}"
   }
 }

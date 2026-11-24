@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Award, Printer } from 'lucide-react';
 import { query, useResource } from '../../lib/data';
 import { formatDateTime } from '../../lib/format';
-import { Alert, Badge, Button, Card, EmptyState, Loading, PageHeader, Select } from '../../components/ui';
+import { Alert, Badge, Button, Card, Drawer, EmptyState, Loading, PageHeader, Select } from '../../components/ui';
+import { CertificateView, type Certificate } from '../certificates/CertificatesPage';
 
 interface Release {
   releaseId: number;
@@ -31,6 +32,9 @@ export default function ResultsPage() {
     if (!childId && children.data?.items.length) setChildId(String(children.data.items[0]!.id));
   }, [children.data, childId]);
   const list = useResource<{ items: Release[] }>(children.data ? `/me/results${query({ studentId: childId })}` : null);
+  const certs = useResource<{ items: Certificate[] }>(children.data ? `/me/certificates${query({ studentId: childId })}` : null);
+  const school = useResource<{ name: string | null }>('/school/branding');
+  const [cert, setCert] = useState<Certificate | null>(null);
 
   return (
     <>
@@ -116,7 +120,45 @@ export default function ResultsPage() {
             </div>
           </Card>
         ))}
+        {(certs.data?.items.length ?? 0) > 0 && (
+          <Card title={t('certificates.title')}>
+            <ul className="divide-y divide-line">
+              {certs.data!.items.map((c) => (
+                <li key={c.id}>
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between gap-2 py-2 text-left text-sm hover:text-brand-600"
+                    onClick={() => setCert(c)}
+                  >
+                    <span>{c.title}</span>
+                    <Badge tone={c.status === 'issued' ? 'ok' : 'danger'} dot>
+                      {t(`certificates.statuses.${c.status}`)}
+                    </Badge>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
       </div>
+      {cert && (
+        <Drawer
+          open
+          wide
+          title={cert.title}
+          onClose={() => setCert(null)}
+          footer={
+            <>
+              <a href={`#/print/certificate/${cert.id}`} target="_blank" rel="noopener">
+                <Button icon={<Printer className="size-4" />}>{t('attendance.print')}</Button>
+              </a>
+              <Button onClick={() => setCert(null)}>{t('common.close')}</Button>
+            </>
+          }
+        >
+          <CertificateView cert={cert} school={school.data?.name ?? null} />
+        </Drawer>
+      )}
     </>
   );
 }

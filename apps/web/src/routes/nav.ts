@@ -86,6 +86,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { path: '/staff', labelKey: 'nav.staff', icon: Briefcase, anyOf: ['staff.read'] },
       { path: '/guardians', labelKey: 'nav.guardians', icon: Contact, anyOf: ['guardians.link.manage'] },
+      { path: '/certificates', labelKey: 'nav.certificates', icon: Award, anyOf: ['certificates.issue', 'certificates.revoke'] },
       { path: '/imports', labelKey: 'nav.imports', icon: FileUp, anyOf: ['students.manage', 'staff.manage', 'guardians.link.manage'] },
     ],
   },

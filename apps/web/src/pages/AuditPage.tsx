@@ -29,6 +29,7 @@ const CATEGORY_TONE: Record<AuditCategory, Tone> = {
   timetable: 'neutral',
   learning: 'ok',
   exams: 'warn',
+  certificates: 'brand',
   communication: 'brand',
   academic: 'ok',
   settings: 'warn',

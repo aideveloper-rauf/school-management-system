@@ -135,7 +135,7 @@ export function AppShell() {
 
       {/* Desktop sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 hidden flex-col border-r border-line bg-surface md:flex ${collapsed ? 'w-16' : 'w-60'}`}
+        className={`fixed inset-y-0 left-0 z-30 hidden flex-col border-r border-line bg-surface md:flex print:hidden ${collapsed ? 'w-16' : 'w-60'}`}
         aria-label={t('common.sidebar')}
       >
         {brand(collapsed)}
@@ -170,8 +170,8 @@ export function AppShell() {
         </div>
       )}
 
-      <div className={collapsed ? 'md:pl-16' : 'md:pl-60'}>
-        <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-line bg-surface/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-surface/80 sm:px-6">
+      <div className={`print:pl-0 ${collapsed ? 'md:pl-16' : 'md:pl-60'}`}>
+        <header className="sticky top-0 z-20 flex h-14 print:hidden items-center gap-2 border-b border-line bg-surface/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-surface/80 sm:px-6">
           <IconButton label={t('common.openMenu')} className="md:hidden" onClick={() => setMobileOpen(true)}>
             <Menu className="size-5" />
           </IconButton>
