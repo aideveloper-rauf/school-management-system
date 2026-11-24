@@ -174,7 +174,7 @@ export default function TimetablePage() {
                           <span className="block truncate text-xs text-fg-muted">
                             {[
                               view !== 'class' && `${e.classSection.gradeName} / ${e.classSection.name}`,
-                              view !== 'teacher' && e.teacher?.fullName,
+                              view !== 'teacher' && !(view === 'mine' && data.data?.kind === 'teacher') && e.teacher?.fullName,
                               view !== 'room' && e.room?.name,
                             ]
                               .filter(Boolean)
