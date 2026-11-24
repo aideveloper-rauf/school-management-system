@@ -26,6 +26,7 @@ export const classSectionRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { 
       .innerJoin('grades as g', 'g.id', 'c.grade_id')
       .innerJoin('academic_years as y', 'y.id', 'c.academic_year_id')
       .leftJoin('rooms as r', 'r.id', 'c.home_room_id')
+      .leftJoin('staff_profiles as t', 't.id', 'c.class_teacher_id')
       .select([
         'c.id',
         'c.academic_year_id',
@@ -38,6 +39,8 @@ export const classSectionRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { 
         'c.capacity',
         'c.home_room_id',
         'r.name as home_room_name',
+        'c.class_teacher_id',
+        't.full_name as class_teacher_name',
       ]);
   type Row = Awaited<ReturnType<ReturnType<typeof listQuery>['executeTakeFirstOrThrow']>>;
   const toSection = (r: Row) => ({
@@ -48,6 +51,7 @@ export const classSectionRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { 
     medium: r.medium,
     capacity: r.capacity,
     homeRoom: r.home_room_id === null ? null : { id: r.home_room_id, name: r.home_room_name },
+    classTeacher: r.class_teacher_id === null ? null : { id: r.class_teacher_id, fullName: r.class_teacher_name },
   });
   const loadSection = async (id: number) => {
     const row = await listQuery().where('c.id', '=', id).executeTakeFirst();

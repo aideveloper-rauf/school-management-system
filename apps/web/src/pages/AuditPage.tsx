@@ -24,6 +24,7 @@ import {
 const CATEGORY_TONE: Record<AuditCategory, Tone> = {
   signIn: 'neutral',
   people: 'brand',
+  records: 'brand',
   academic: 'ok',
   settings: 'warn',
   backups: 'neutral',

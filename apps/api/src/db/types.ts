@@ -154,6 +154,8 @@ export interface ClassSectionTable {
   medium: string | null;
   capacity: number | null;
   home_room_id: number | null;
+  /** Class teacher (staff profile), migration 0005. */
+  class_teacher_id: number | null;
   created_at: CreatedAt;
   updated_at: UpdatedAt;
 }
@@ -196,7 +198,130 @@ export interface UserTokenTable {
   created_at: CreatedAt;
 }
 
+// People (migration 0005) ----------------------------------------------------
+export type StaffStatus = 'active' | 'left';
+export interface StaffProfileTable {
+  id: Generated<number>;
+  staff_no: string;
+  full_name: string;
+  name_with_initials: string | null;
+  designation: string | null;
+  work_email: string | null;
+  work_phone: string | null;
+  joined_on: string | null;
+  status: Generated<StaffStatus>;
+  left_on: string | null;
+  user_id: number | null;
+  created_at: CreatedAt;
+  updated_at: UpdatedAt;
+}
+
+export type StudentStatus = 'active' | 'left' | 'transferred' | 'graduated';
+export interface StudentProfileTable {
+  id: Generated<number>;
+  admission_no: string;
+  full_name: string;
+  name_with_initials: string | null;
+  date_of_birth: string | null;
+  gender: 'female' | 'male' | 'other' | null;
+  admitted_on: string;
+  status: Generated<StudentStatus>;
+  left_on: string | null;
+  user_id: number | null;
+  created_at: CreatedAt;
+  updated_at: UpdatedAt;
+}
+
+export interface StudentStatusEventTable {
+  id: Generated<number>;
+  student_id: number;
+  from_status: StudentStatus | null;
+  to_status: StudentStatus;
+  effective_on: string;
+  reason: string;
+  /** Optional free text; never copied into audit metadata. */
+  note: string | null;
+  recorded_by: number | null;
+  created_at: CreatedAt;
+}
+
+export interface EnrollmentTable {
+  id: Generated<number>;
+  student_id: number;
+  class_section_id: number;
+  academic_year_id: number;
+  roll_no: number | null;
+  starts_on: string;
+  ends_on: string | null;
+  end_reason: string | null;
+  created_by: number | null;
+  created_at: CreatedAt;
+}
+
+export interface GuardianProfileTable {
+  id: Generated<number>;
+  full_name: string;
+  phone: string | null;
+  email: string | null;
+  preferred_locale: Generated<string>;
+  notify_email: Generated<number>;
+  notify_sms: Generated<number>;
+  user_id: number | null;
+  created_at: CreatedAt;
+  updated_at: UpdatedAt;
+}
+
+export type GuardianRelationship = 'mother' | 'father' | 'guardian' | 'other';
+export type LinkVerification = 'pending' | 'verified' | 'rejected';
+export interface StudentGuardianTable {
+  student_id: number;
+  guardian_id: number;
+  relationship: GuardianRelationship;
+  is_primary: Generated<number>;
+  verification_status: Generated<LinkVerification>;
+  verification_method: string | null;
+  verified_by: number | null;
+  verified_at: Date | null;
+  created_at: CreatedAt;
+}
+
+export interface TeacherAssignmentTable {
+  id: Generated<number>;
+  staff_id: number;
+  class_section_id: number;
+  subject_id: number;
+  created_by: number | null;
+  created_at: CreatedAt;
+}
+
+export type ImportKind = 'students' | 'staff' | 'guardians';
+export interface ImportJobTable {
+  id: Generated<number>;
+  kind: ImportKind;
+  status: 'previewed' | 'applied';
+  file_name: string;
+  file_sha256: string;
+  total_rows: Generated<number>;
+  created_rows: Generated<number>;
+  updated_rows: Generated<number>;
+  unchanged_rows: Generated<number>;
+  error_rows: Generated<number>;
+  /** JSON array of { row, field, message } — never cell values. */
+  errors: string | null;
+  created_by: number | null;
+  created_at: CreatedAt;
+  applied_at: Date | null;
+}
+
 export interface Database {
+  staff_profiles: StaffProfileTable;
+  student_profiles: StudentProfileTable;
+  student_status_events: StudentStatusEventTable;
+  enrollments: EnrollmentTable;
+  guardian_profiles: GuardianProfileTable;
+  student_guardians: StudentGuardianTable;
+  teacher_assignments: TeacherAssignmentTable;
+  import_jobs: ImportJobTable;
   user_tokens: UserTokenTable;
   grades: GradeTable;
   subjects: SubjectTable;

@@ -12,6 +12,28 @@ export const isEmailIdentifier = (identifier: string): boolean => /^[^\s@]+@[^\s
 export const CALENDAR_EVENT_KINDS = ['holiday', 'term_break', 'exam', 'event'] as const;
 export type CalendarEventKind = (typeof CALENDAR_EVENT_KINDS)[number];
 
+// People records (migration 0005). Provisional minimal field set until the data policy (P0-6) is signed off.
+export const STUDENT_STATUSES = ['active', 'left', 'transferred', 'graduated'] as const;
+export type StudentStatus = (typeof STUDENT_STATUSES)[number];
+export const GENDERS = ['female', 'male', 'other'] as const;
+export type Gender = (typeof GENDERS)[number];
+export const STAFF_STATUSES = ['active', 'left'] as const;
+export type StaffStatus = (typeof STAFF_STATUSES)[number];
+/** Reason codes for a student leaving / changing status. Free-text detail goes in `note`, never in audit. */
+export const STUDENT_LEAVE_REASONS = ['transfer', 'completed', 'family_move', 'withdrawn', 'other'] as const;
+export type StudentLeaveReason = (typeof STUDENT_LEAVE_REASONS)[number];
+export const ENROLLMENT_END_REASONS = ['section_change', 'promoted', 'left', 'correction'] as const;
+export type EnrollmentEndReason = (typeof ENROLLMENT_END_REASONS)[number];
+export const GUARDIAN_RELATIONSHIPS = ['mother', 'father', 'guardian', 'other'] as const;
+export type GuardianRelationship = (typeof GUARDIAN_RELATIONSHIPS)[number];
+export const LINK_VERIFICATION_STATUSES = ['pending', 'verified', 'rejected'] as const;
+export type LinkVerificationStatus = (typeof LINK_VERIFICATION_STATUSES)[number];
+/** How the registrar confirmed a guardian link (P0-6 decides which methods the school accepts). */
+export const VERIFICATION_METHODS = ['in_person', 'birth_certificate', 'school_records', 'other'] as const;
+export type VerificationMethod = (typeof VERIFICATION_METHODS)[number];
+export const IMPORT_KINDS = ['students', 'staff', 'guardians'] as const;
+export type ImportKind = (typeof IMPORT_KINDS)[number];
+
 /**
  * Audit log categories → action prefixes. Shared so the API filter and the web filter agree.
  * Every audited action must start with one of these prefixes (a test checks the API's actions).
@@ -19,6 +41,7 @@ export type CalendarEventKind = (typeof CALENDAR_EVENT_KINDS)[number];
 export const AUDIT_CATEGORIES = {
   signIn: ['auth.'],
   people: ['user.', 'role.', 'setup.'],
+  records: ['student.', 'staff.', 'guardian.', 'enrollment.', 'teacher_assignment.', 'import.'],
   academic: ['academic_year.', 'term.', 'grade.', 'subject.', 'room.', 'class_section.', 'period.', 'calendar_event.'],
   settings: ['school.'],
   backups: ['backup.'],

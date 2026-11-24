@@ -431,7 +431,16 @@
     "notInvited": "This account has already been activated.",
     "userDisabled": "This account is disabled. Enable it first.",
     "internal": "Something went wrong. Please try again.",
-    "network": "Cannot reach the server. Check your connection."
+    "network": "Cannot reach the server. Check your connection.",
+    "studentNotActive": "This student is not currently active.",
+    "studentAlreadyActive": "This student is already active.",
+    "alreadyEnrolled": "The student is already in this class.",
+    "accountAlreadyLinked": "That sign-in account is already linked to another record.",
+    "importBadFile": "The file could not be read as CSV.",
+    "importMissingColumns": "The file is missing required columns.",
+    "importAlreadyApplied": "This file has already been imported.",
+    "importFileChanged": "The file is different from the one you previewed. Upload it again.",
+    "importHasErrors": "Fix the rows with errors before importing."
   },
   "common": {
     "loading": "Loading…",
@@ -524,10 +533,11 @@
     "showRecordHistory": "This record's history",
     "categories": {
       "signIn": "Sign-in",
-      "people": "People",
+      "people": "Accounts & roles",
       "academic": "Academic setup",
       "settings": "Settings",
-      "backups": "Backups"
+      "backups": "Backups",
+      "records": "Student & staff records"
     },
     "entities": {
       "user": "User",
@@ -540,7 +550,12 @@
       "class_section": "Class",
       "period": "Period",
       "calendar_event": "Calendar event",
-      "backup": "Backup"
+      "backup": "Backup",
+      "student": "Student",
+      "staff": "Staff member",
+      "guardian": "Guardian",
+      "teacher_assignment": "Teaching assignment",
+      "import_job": "Import"
     },
     "metaKeys": {
       "fields": "Changed fields",
@@ -553,7 +568,26 @@
       "bytes": "Size",
       "tables": "Tables",
       "files": "Files",
-      "createdAt": "Backup made"
+      "createdAt": "Backup made",
+      "reason": "Reason",
+      "classSectionId": "Class id",
+      "fromClassSectionId": "From class id",
+      "enrollmentId": "Enrolment id",
+      "guardianId": "Guardian id",
+      "staffId": "Staff id",
+      "subjectId": "Subject id",
+      "userId": "Account id",
+      "method": "Method",
+      "from": "Previous state",
+      "kind": "Kind",
+      "created": "Created",
+      "updated": "Updated",
+      "unchanged": "Unchanged",
+      "skipped": "Skipped",
+      "moved": "Moved",
+      "kept": "Kept",
+      "endReason": "End reason",
+      "fromAcademicYearId": "From year id"
     },
     "fieldNames": {
       "displayName": "Full name",
@@ -627,7 +661,30 @@
       "calendar_event_updated": "Calendar event changed",
       "calendar_event_deleted": "Calendar event deleted",
       "backup_created": "Backup made",
-      "backup_restored": "Backup restored"
+      "backup_restored": "Backup restored",
+      "student_created": "Student added",
+      "student_updated": "Student details changed",
+      "student_viewed": "Student profile opened",
+      "student_left": "Student left",
+      "student_readmitted": "Student re-admitted",
+      "enrollment_created": "Student enrolled in a class",
+      "enrollment_updated": "Enrolment changed",
+      "enrollment_promoted": "Class promoted",
+      "staff_created": "Staff member added",
+      "staff_updated": "Staff details changed",
+      "guardian_created": "Guardian added",
+      "guardian_updated": "Guardian details changed",
+      "guardian_deleted": "Guardian deleted",
+      "guardian_viewed": "Guardian opened",
+      "guardian_linked": "Guardian linked to student",
+      "guardian_link_updated": "Guardian link changed",
+      "guardian_link_verified": "Guardian link verified",
+      "guardian_link_rejected": "Guardian link rejected",
+      "guardian_unlinked": "Guardian unlinked",
+      "teacher_assignment_created": "Teacher assigned",
+      "teacher_assignment_deleted": "Teacher assignment removed",
+      "class_section_class_teacher_set": "Class teacher changed",
+      "import_applied": "CSV import applied"
     }
   },
   "status": {
