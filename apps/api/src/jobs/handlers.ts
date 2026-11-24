@@ -1,6 +1,7 @@
 import type { AppConfig } from '../config/env.js';
 import type { Mailer } from '../mail/mailer.js';
 import { SEND_USER_TOKEN_JOB, sendUserTokenHandler } from '../modules/users/tokens.js';
+import { ABSENCE_NOTICE_JOB, absenceNoticeHandler } from '../modules/attendance/notify.js';
 import type { JobHandler } from './queue.js';
 
 /**
@@ -10,5 +11,6 @@ import type { JobHandler } from './queue.js';
 export function buildJobHandlers(deps: { config: AppConfig; mailer: Mailer }): Record<string, JobHandler> {
   return {
     [SEND_USER_TOKEN_JOB]: sendUserTokenHandler(deps),
+    [ABSENCE_NOTICE_JOB]: absenceNoticeHandler(deps),
   };
 }

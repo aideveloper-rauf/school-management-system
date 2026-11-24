@@ -50,8 +50,7 @@ export const NAV_GROUPS: NavGroup[] = [
         path: '/attendance',
         labelKey: 'nav.attendance',
         icon: ClipboardCheck,
-        anyOf: ['attendance.record.scoped', 'attendance.correct'],
-        soon: true,
+        anyOf: ['attendance.record.scoped', 'attendance.correct', 'students.read.all'],
       },
       {
         path: '/students',

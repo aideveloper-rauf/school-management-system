@@ -443,7 +443,11 @@
     "importMissingColumns": "The file is missing required columns.",
     "importAlreadyApplied": "This file has already been imported.",
     "importFileChanged": "The file is different from the one you previewed. Upload it again.",
-    "importHasErrors": "Fix the rows with errors before importing."
+    "importHasErrors": "Fix the rows with errors before importing.",
+    "notSchoolDay": "The school calendar marks this day as closed.",
+    "attendanceLocked": "This register can no longer be changed directly. Request a correction instead.",
+    "correctionPending": "A correction for this student and day is already waiting for a decision.",
+    "correctionDecided": "This correction has already been decided."
   },
   "common": {
     "loading": "Loading…",
@@ -541,7 +545,8 @@
       "academic": "Academic setup",
       "settings": "Settings",
       "backups": "Backups",
-      "records": "Student & staff records"
+      "records": "Student & staff records",
+      "attendance": "Attendance"
     },
     "entities": {
       "user": "User",
@@ -591,7 +596,14 @@
       "moved": "Moved",
       "kept": "Kept",
       "endReason": "End reason",
-      "fromAcademicYearId": "From year id"
+      "fromAcademicYearId": "From year id",
+      "date": "Date",
+      "present": "Present",
+      "absent": "Absent",
+      "late": "Late",
+      "excused": "Excused",
+      "to": "New status",
+      "correctionId": "Correction id"
     },
     "fieldNames": {
       "displayName": "Full name",
@@ -688,7 +700,12 @@
       "teacher_assignment_created": "Teacher assigned",
       "teacher_assignment_deleted": "Teacher assignment removed",
       "class_section_class_teacher_set": "Class teacher changed",
-      "import_applied": "CSV import applied"
+      "import_applied": "CSV import applied",
+      "attendance_saved": "Register saved",
+      "attendance_corrected": "Attendance corrected",
+      "attendance_correction_requested": "Attendance correction requested",
+      "attendance_correction_approved": "Attendance correction approved",
+      "attendance_correction_rejected": "Attendance correction rejected"
     }
   },
   "status": {
@@ -1023,5 +1040,76 @@
     "result": "Result",
     "counts": "{{created}} new · {{updated}} updated · {{unchanged}} unchanged",
     "when": "When"
+  },
+  "attendance": {
+    "title": "Attendance",
+    "intro": "Take the daily register, see attendance over time and handle corrections.",
+    "tabs": {
+      "register": "Register",
+      "summary": "Summary",
+      "corrections": "Corrections"
+    },
+    "date": "Date",
+    "class": "Class",
+    "noClasses": "No classes to show.",
+    "noClassesHelp": "You can take attendance for classes you teach or are class teacher of. Ask the coordinator to assign you.",
+    "notTaken": "Not taken yet.",
+    "takenBy": "Last saved by {{name}}, {{when}}",
+    "markRestPresent": "Mark the rest present",
+    "closed": "The school is closed on this day ({{title}}).",
+    "outsideYear": "This date is outside the class's academic year.",
+    "lockedTitle": "This register is closed",
+    "lockedHelp": "Registers can be changed only on the day itself. Use Request correction to change a mark; it needs a reason and approval.",
+    "noStudents": "No students were in this class on this date.",
+    "statusFor": "Attendance for {{name}}",
+    "statuses": {
+      "present": "Present",
+      "absent": "Absent",
+      "late": "Late",
+      "excused": "Excused"
+    },
+    "short": {
+      "present": "P",
+      "absent": "A",
+      "late": "L",
+      "excused": "E"
+    },
+    "unmarked_one": "{{count}} not marked",
+    "unmarked_other": "{{count}} not marked",
+    "unmarkedShort": "Not marked",
+    "save": "Save register",
+    "saved": "Register saved.",
+    "correctionPending": "Correction waiting",
+    "requestCorrection": "Request correction",
+    "changeTo": "Change to",
+    "reason": "Reason",
+    "reasonHint": "Kept with the correction for the approver; not shown in the audit log.",
+    "sendCorrection": "Send for approval",
+    "correctionSent": "Correction sent for approval.",
+    "correctionApplied": "Correction applied.",
+    "from": "From",
+    "to": "To",
+    "print": "Print",
+    "summaryTitle": "Attendance summary · {{cls}}",
+    "daysTaken_one": "Register taken on {{count}} day",
+    "daysTaken_other": "Register taken on {{count}} days",
+    "rate": "Attendance",
+    "correctionsHelp": "Corrections you have asked for.",
+    "correctionsHelpApprover": "Check each reason before approving. Approved corrections change the register; the history is kept.",
+    "correctionStatus": "Status",
+    "anyStatus": "Any status",
+    "correctionStatuses": {
+      "pending": "Waiting",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "noCorrections": "No corrections.",
+    "requestedBy": "Asked by {{name}}, {{when}}",
+    "decidedBy": "decided by {{name}}",
+    "approve": "Approve",
+    "reject": "Reject",
+    "approved": "Correction approved.",
+    "rejected": "Correction rejected.",
+    "reasonPrivacy": "Reasons are visible to approvers and the person who asked, and are never copied into the audit log."
   }
 }

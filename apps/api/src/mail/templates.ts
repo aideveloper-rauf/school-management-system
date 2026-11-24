@@ -32,3 +32,17 @@ const byLocale: Partial<Record<Locale, typeof en>> = { en };
 export function emailTemplate(locale: string, kind: 'invite' | 'reset'): Template {
   return (byLocale[locale as Locale] ?? en)[kind];
 }
+
+/** Absence notice to a guardian. Names and the date only — no reasons, marks or other records. */
+const absenceEn = (v: { school: string; guardian: string; student: string; date: string }) => ({
+  subject: `${v.school}: absence on ${v.date}`,
+  text:
+    `Dear ${v.guardian},\n\n${v.student} was marked absent at ${v.school} on ${v.date}.\n` +
+    `If you were not expecting this, please contact the school.\n\n` +
+    `You receive this because the school has your email address for attendance notices.`,
+});
+const absenceByLocale: Partial<Record<Locale, typeof absenceEn>> = { en: absenceEn };
+
+export function absenceEmail(locale: string, v: { school: string; guardian: string; student: string; date: string }) {
+  return (absenceByLocale[locale as Locale] ?? absenceEn)(v);
+}

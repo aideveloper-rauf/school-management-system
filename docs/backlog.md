@@ -34,7 +34,7 @@ Detailed tasks, IDs, dependencies and exit gates for each item: [`roadmap.md`](r
 - [x] Staff and student records (minimal fields), enrollment history, CSV import (idempotent ImportJob) — fields provisional until P0-6
 - [x] Guardian profiles and verified `student_guardians` links; scope helpers (`assertCanAccessStudent`)
 - [x] Teacher class/subject assignments
-- [ ] Attendance sessions/records, correction workflow with reasons, guardian notification jobs
+- [x] Attendance sessions/records, correction workflow with reasons, guardian notification jobs (per-day registers, email; per-period and SMS later)
 - [ ] Timetable with teacher/class/room collision checks
 - [ ] Announcements with audience targeting
 

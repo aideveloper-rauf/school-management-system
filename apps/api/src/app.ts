@@ -14,6 +14,7 @@ import { academicRoutes } from './modules/academic/routes.js';
 import { auditRoutes } from './modules/audit/routes.js';
 import { userRoutes } from './modules/users/routes.js';
 import { peopleRoutes } from './modules/people/routes.js';
+import { attendanceRoutes } from './modules/attendance/routes.js';
 
 export interface BuildAppOptions {
   config: AppConfig;
@@ -63,6 +64,7 @@ export async function buildApp({ config, db, logger = true }: BuildAppOptions): 
       await v1.register(auditRoutes, { db });
       await v1.register(userRoutes, { db });
       await v1.register(peopleRoutes, { db });
+      await v1.register(attendanceRoutes, { db });
     },
     { prefix: API_PREFIX },
   );

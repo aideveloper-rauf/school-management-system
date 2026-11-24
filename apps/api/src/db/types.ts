@@ -313,7 +313,42 @@ export interface ImportJobTable {
   applied_at: Date | null;
 }
 
+// Attendance (migration 0006) ------------------------------------------------
+export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
+export interface AttendanceSessionTable {
+  id: Generated<number>;
+  class_section_id: number;
+  session_date: string;
+  taken_by: number | null;
+  taken_at: CreatedAt;
+  updated_by: number | null;
+  updated_at: UpdatedAt;
+}
+export interface AttendanceRecordTable {
+  session_id: number;
+  student_id: number;
+  status: AttendanceStatus;
+  updated_at: UpdatedAt;
+}
+export interface AttendanceCorrectionTable {
+  id: Generated<number>;
+  session_id: number;
+  student_id: number;
+  from_status: AttendanceStatus | null;
+  to_status: AttendanceStatus;
+  /** Free text; kept here only, never copied into audit metadata. */
+  reason: string;
+  status: Generated<'pending' | 'approved' | 'rejected'>;
+  requested_by: number | null;
+  decided_by: number | null;
+  decided_at: Date | null;
+  created_at: CreatedAt;
+}
+
 export interface Database {
+  attendance_sessions: AttendanceSessionTable;
+  attendance_records: AttendanceRecordTable;
+  attendance_corrections: AttendanceCorrectionTable;
   staff_profiles: StaffProfileTable;
   student_profiles: StudentProfileTable;
   student_status_events: StudentStatusEventTable;

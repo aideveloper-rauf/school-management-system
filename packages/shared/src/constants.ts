@@ -43,6 +43,9 @@ export const IMPORT_COLUMNS: Record<ImportKind, { required: readonly string[]; o
   guardians: { required: ['student_admission_no', 'full_name', 'relationship'], optional: ['phone', 'email', 'is_primary'] },
 };
 
+export const ATTENDANCE_STATUSES = ['present', 'absent', 'late', 'excused'] as const;
+export type AttendanceStatus = (typeof ATTENDANCE_STATUSES)[number];
+
 /**
  * Audit log categories → action prefixes. Shared so the API filter and the web filter agree.
  * Every audited action must start with one of these prefixes (a test checks the API's actions).
@@ -51,6 +54,7 @@ export const AUDIT_CATEGORIES = {
   signIn: ['auth.'],
   people: ['user.', 'role.', 'setup.'],
   records: ['student.', 'staff.', 'guardian.', 'enrollment.', 'teacher_assignment.', 'import.'],
+  attendance: ['attendance.'],
   academic: ['academic_year.', 'term.', 'grade.', 'subject.', 'room.', 'class_section.', 'period.', 'calendar_event.'],
   settings: ['school.'],
   backups: ['backup.'],

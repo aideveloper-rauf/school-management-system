@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { LOCALES } from '../locales.js';
 import {
+  ATTENDANCE_STATUSES,
   ENROLLMENT_END_REASONS,
   GENDERS,
   GUARDIAN_RELATIONSHIPS,
@@ -202,3 +203,31 @@ export const importListQuerySchema = paginationQuerySchema.extend({ kind: z.enum
 export type CreateStudent = z.infer<typeof createStudentSchema>;
 export type CreateStaff = z.infer<typeof createStaffSchema>;
 export type CreateGuardian = z.infer<typeof createGuardianSchema>;
+
+// Attendance -----------------------------------------------------------------
+export const attendanceDateParamsSchema = z.object({
+  id: z.coerce.number().int().positive(),
+  date: isoDateSchema,
+});
+/** Save a whole register (or part of it). Students must be enrolled in the class on that date. */
+export const saveAttendanceSchema = z.object({
+  records: z
+    .array(z.object({ studentId: idSchema, status: z.enum(ATTENDANCE_STATUSES) }))
+    .min(1)
+    .max(200)
+    .refine((r) => new Set(r.map((x) => x.studentId)).size === r.length, 'Each student once'),
+});
+export const attendanceRangeQuerySchema = z
+  .object({ from: isoDateSchema, to: isoDateSchema })
+  .refine((v) => v.to >= v.from, { message: 'to must not be before from', path: ['to'] });
+export const requestCorrectionSchema = z.object({
+  classSectionId: idSchema,
+  date: isoDateSchema,
+  studentId: idSchema,
+  toStatus: z.enum(ATTENDANCE_STATUSES),
+  reason: text(500),
+});
+export const decideCorrectionSchema = z.object({ decision: z.enum(['approved', 'rejected']) });
+export const correctionListQuerySchema = paginationQuerySchema.extend({
+  status: z.enum(['pending', 'approved', 'rejected']).optional(),
+});

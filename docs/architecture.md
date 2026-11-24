@@ -143,7 +143,7 @@ removes expired sessions and old login attempts.
 - `HashRouter` is used so the static build works on any host; switch to `BrowserRouter` once the `.htaccess`
   rewrite is confirmed on the target plan.
 
-## 5. Current schema (migrations 0001–0005)
+## 5. Current schema (migrations 0001–0006)
 
 - **0001 foundation:** `schools`, `users`, `user_roles`, `sessions`, `login_attempts`, `audit_events`, `academic_years`,
   `terms`, `jobs`, `app_meta`, plus Kysely's `schema_migrations` tables.
@@ -153,6 +153,7 @@ removes expired sessions and old login attempts.
 - **0004:** `user_tokens`, `users.must_change_password`.
 - **0005 people:** `staff_profiles`, `student_profiles`, `student_status_events`, `enrollments`, `guardian_profiles`,
   `student_guardians`, `teacher_assignments`, `class_sections.class_teacher_id`, `import_jobs`.
+- **0006 attendance:** `attendance_sessions` (unique per section + date), `attendance_records`, `attendance_corrections`.
 - **0003:** adds 0001's foreign keys. 0001 declared them inline (`.references()`), which **MySQL silently ignores**
   (MariaDB honours them, so 0003 skips existing keys). Always use `.addForeignKeyConstraint()`; ESLint rejects
   `.references()` in migrations and a schema test fails if any `*_id`/`*_by` column lacks a foreign key.
@@ -246,6 +247,19 @@ religion or ethnicity columns.
 
 Web: Students (list + drawer with details, classes, guardians, history; promote a class), Staff (drawer with teaching
 assignments and class teacher), Guardians (verification queue + directory), Import data (template download, preview, apply).
+
+### Attendance (`modules/attendance/`, migration 0006)
+
+| Endpoint | Rules |
+|---|---|
+| `GET/PUT /class-sections/:id/attendance/:date` | Roster = students enrolled on that date. Take: `attendance.record.scoped` for taught/class-teacher sections, or `attendance.correct`. No future dates, dates outside the section's year, or calendar closures (`409 errors.notSchoolDay`). Editable only on the day itself (school time zone); `attendance.correct` may catch up a register nobody took |
+| `GET /class-sections/:id/attendance?from&to` | Per-student totals and attendance rate (present + late ÷ marked) |
+| `GET /me/attendance-registers?date` | Sections the user can take on that date, with taken/not-taken |
+| `POST /attendance/corrections`, `GET /attendance/corrections?status`, `POST /attendance/corrections/:id/decide` | After the day, changes are corrections with a reason. Requests by `attendance.correct` apply at once (recorded as approved by themselves); others wait for approval. Reasons live in `attendance_corrections` only |
+
+Newly absent students queue `attendance.absence_notice` (idempotency key per student and day; 30-minute delay so quick
+corrections cancel it; moved out of 20:00–07:00 school time). The job re-checks the record and emails verified guardians
+with `notify_email` and an email address. Per-period registers and SMS are not built yet.
 
 ## 6. Known gaps (tracked in backlog.md)
 
