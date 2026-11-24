@@ -172,3 +172,66 @@ export const savePaperVersionSchema = z.object({
     .max(200)
     .refine((v) => new Set(v.map((i) => i.questionVersionId)).size === v.length, 'Each question once'),
 });
+
+// Exams, marks and results (roadmap E-1…E-6) --------------------------------
+const pct = z.number().min(0).max(100);
+export const gradeBandSchema = z.object({
+  /** Lowest percentage for this grade (inclusive). */
+  min: pct,
+  grade: z.string().trim().min(1).max(8),
+  label: z.string().trim().max(64).nullable().default(null),
+});
+export const gradingScaleBandsSchema = z
+  .array(gradeBandSchema)
+  .min(2)
+  .max(20)
+  .superRefine((bands, ctx) => {
+    if (!bands.some((b) => b.min === 0)) ctx.addIssue({ code: 'custom', message: 'One band must start at 0', path: [] });
+    if (new Set(bands.map((b) => b.min)).size !== bands.length)
+      ctx.addIssue({ code: 'custom', message: 'Band minimums must differ', path: [] });
+    if (new Set(bands.map((b) => b.grade)).size !== bands.length) ctx.addIssue({ code: 'custom', message: 'Grades must differ', path: [] });
+  });
+export const createGradingScaleSchema = z.object({ name: z.string().trim().min(1).max(64), bands: gradingScaleBandsSchema });
+export const reviseGradingScaleSchema = z.object({ bands: gradingScaleBandsSchema });
+export const createExamSeriesSchema = z.object({
+  academicYearId: idSchema,
+  termId: idSchema.nullable().default(null),
+  name: z.string().trim().min(1).max(128),
+  gradingScaleVersionId: idSchema,
+});
+const markValue = z.number().min(0).max(9999).multipleOf(0.01);
+export const createComponentSchema = z.object({
+  gradeId: idSchema,
+  subjectId: idSchema,
+  name: z.string().trim().min(1).max(64),
+  maxMarks: markValue.positive(),
+  weight: z.number().positive().max(100).multipleOf(0.01).default(100),
+  paperVersionId: idSchema.nullable().default(null),
+});
+export const markEntrySchema = z.object({
+  studentId: idSchema,
+  status: z.enum(['present', 'absent', 'exempt']),
+  rawMark: markValue.nullable(),
+});
+export const saveMarksSchema = z.object({
+  marks: z
+    .array(markEntrySchema)
+    .min(1)
+    .max(200)
+    .refine((m) => new Set(m.map((x) => x.studentId)).size === m.length, 'Each student once')
+    .refine(
+      (m) => m.every((x) => (x.status === 'present') === (x.rawMark !== null)),
+      'Present needs a mark; absent/exempt must not have one',
+    ),
+  /** Required for any change once the sheet is no longer open. */
+  reason: z.string().trim().min(1).max(500).optional(),
+});
+export const sheetActionSchema = z.object({
+  action: z.enum(['submit', 'moderate', 'approve', 'reopen']),
+  reason: z.string().trim().min(1).max(500).optional(),
+});
+export const publishResultsSchema = z.object({
+  classSectionId: idSchema,
+  /** Required when a release already exists (a correction). */
+  reason: z.string().trim().min(1).max(500).optional(),
+});

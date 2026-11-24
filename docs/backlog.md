@@ -41,8 +41,8 @@ Detailed tasks, IDs, dependencies and exit gates for each item: [`roadmap.md`](r
 ## Phase 3 — Learning & exams
 - [x] Tutorials/assignments/submissions with private file storage and authorized downloads
 - [x] Question bank with versioning; exam paper versions
-- [ ] Exam series, assessment components, grading scales (versioned), mark entry (DECIMAL), moderation, approval
-- [ ] Result publication as immutable versioned snapshots; correction = new version + reason
+- [x] Exam series, assessment components, grading scales (versioned), mark entry (DECIMAL), moderation, approval (calculation rules provisional until P0-3 fixtures)
+- [x] Result publication as immutable versioned snapshots; correction = new version + reason
 
 ## Phase 4 — Family & certificates
 - [ ] Student and guardian portals (released results only)

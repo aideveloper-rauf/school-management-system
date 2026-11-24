@@ -143,7 +143,7 @@ removes expired sessions and old login attempts.
 - `HashRouter` is used so the static build works on any host; switch to `BrowserRouter` once the `.htaccess`
   rewrite is confirmed on the target plan.
 
-## 5. Current schema (migrations 0001–0009)
+## 5. Current schema (migrations 0001–0010)
 
 - **0001 foundation:** `schools`, `users`, `user_roles`, `sessions`, `login_attempts`, `audit_events`, `academic_years`,
   `terms`, `jobs`, `app_meta`, plus Kysely's `schema_migrations` tables.
@@ -157,6 +157,8 @@ removes expired sessions and old login attempts.
 - **0007:** `timetable_entries` (clash keys), `announcements`, `announcement_reads`.
 - **0008 learning:** `stored_files`, `learning_items`, `learning_item_files`, `submissions`, `submission_files`.
 - **0009 question bank:** `questions`, `question_versions`, `exam_papers`, `exam_paper_versions`, `exam_paper_items`.
+- **0010 exams:** `grading_scales`, `grading_scale_versions`, `exam_series`, `exam_components`, `mark_sheets`, `marks`,
+  `mark_changes`, `result_releases`.
 - **0003:** adds 0001's foreign keys. 0001 declared them inline (`.references()`), which **MySQL silently ignores**
   (MariaDB honours them, so 0003 skips existing keys). Always use `.addForeignKeyConstraint()`; ESLint rejects
   `.references()` in migrations and a schema test fails if any `*_id`/`*_by` column lacks a foreign key.
@@ -302,6 +304,18 @@ with `notify_email` and an email address. Per-period registers and SMS are not b
 - Authors (`questions.author`, teachers) are limited to subjects they teach; reviewers (`questions.review`, coordinator)
   see all. Papers hold exact **approved** question versions; a `final` version is frozen and changing it starts a new
   draft version, so a paper already sat never changes.
+
+### Exams, marks and results (`modules/exams/`, migration 0010)
+
+| Step | Endpoints | Who / rules |
+|---|---|---|
+| Setup | `GET/POST /grading-scales`, `POST /grading-scales/:id/versions`, `GET/POST /exam-series`, `GET /exam-series/:id`, `POST /exam-series/:id/components`, `DELETE /exam-components/:id` | `exams.manage` (coordinator). Scale changes are new versions; a series pins its scale version. Components: grade × subject × paper with max marks and weight; may link a **final** paper version |
+| Marks | `GET /exam-components/:id/sheets/:classSectionId`, `PUT …/marks` | Teachers (`marks.enter.scoped`) for assigned class + subject while the sheet is `open`. DECIMAL raw marks, `present/absent/exempt`, ≤ max (DB check too), max and assessor stored with each mark. After submission only moderators change marks, with a reason → `mark_changes` |
+| Workflow | `POST …/actions {submit\|moderate\|approve\|reopen}` | open → submitted (all students marked) → moderated (`marks.moderate`) → approved (`results.approve`). Reopen needs a reason (kept on the sheet, not in audit) |
+| Results | `GET /exam-series/:id/classes/:classSectionId/results`, `POST /exam-series/:id/releases`, `GET /result-releases/:id` | `calculate.ts` (pure, unit-tested): weighted subject %, band grade, total, average, competition rank. Publishing (`results.publish`) needs every sheet approved and **appends** an immutable JSON snapshot (+SHA-256); version > 1 requires a reason. Nothing overwrites a release |
+| Family | `GET /me/results?studentId` | `results.read.own`: the student or a verified guardian; latest release per series; only that student's row plus class size. Audited as `results.viewed` |
+
+The default calculation rules are documented in `calculate.ts` and must be confirmed against the pilot school's sheets (P0-3).
 
 ## 6. Known gaps (tracked in backlog.md)
 

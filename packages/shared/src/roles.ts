@@ -43,6 +43,7 @@ export const PERMISSIONS = [
   'questions.author',
   'questions.review',
   // Assessment
+  'exams.manage',
   'marks.enter.scoped',
   'marks.moderate',
   'results.approve',
@@ -104,6 +105,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'learning.read.all',
     'questions.author',
     'questions.review',
+    'exams.manage',
     'marks.moderate',
     'announcements.publish',
   ],

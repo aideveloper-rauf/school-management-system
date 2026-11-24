@@ -464,7 +464,13 @@
     "questionRetired": "This question has been retired.",
     "reviewState": "This version cannot be sent for review or reviewed in its current state.",
     "questionNotApproved": "Only approved question versions can be used in a paper.",
-    "alreadyFinal": "This paper version is already final."
+    "alreadyFinal": "This paper version is already final.",
+    "sheetApproved": "This mark sheet is approved. Reopen it (with a reason) to change marks.",
+    "sheetSubmitted": "This mark sheet has been submitted. Ask a moderator to correct it.",
+    "reasonRequired": "Give a reason for this change.",
+    "sheetState": "That step is not possible for this mark sheet right now.",
+    "marksIncomplete": "Enter a mark (or absent/exempt) for every student before submitting.",
+    "resultsNotApproved": "Every mark sheet for this class must be approved before publishing."
   },
   "common": {
     "loading": "Loading…",
@@ -589,7 +595,10 @@
       "announcement": "Announcement",
       "learning_item": "Learning item",
       "question": "Question",
-      "paper": "Exam paper"
+      "paper": "Exam paper",
+      "grading_scale": "Grading scale",
+      "exam_series": "Exam",
+      "exam_component": "Exam paper"
     },
     "metaKeys": {
       "fields": "Changed fields",
@@ -640,7 +649,11 @@
       "fileId": "File id",
       "version": "Version",
       "versionId": "Version id",
-      "questions": "Questions"
+      "questions": "Questions",
+      "componentId": "Paper id",
+      "gradeId": "Grade id",
+      "changed": "Marks changed",
+      "releaseId": "Release id"
     },
     "fieldNames": {
       "displayName": "Full name",
@@ -766,7 +779,21 @@
       "question_retired": "Question retired",
       "paper_created": "Exam paper created",
       "paper_draft_saved": "Exam paper draft saved",
-      "paper_finalized": "Exam paper finalised"
+      "paper_finalized": "Exam paper finalised",
+      "grading_scale_created": "Grading scale created",
+      "grading_scale_revised": "Grading scale revised",
+      "exam_series_created": "Exam created",
+      "exam_component_created": "Exam paper added",
+      "exam_component_deleted": "Exam paper removed",
+      "marks_entered": "Marks entered",
+      "marks_corrected": "Marks corrected after submission",
+      "marks_sheet_submitted": "Mark sheet submitted",
+      "marks_sheet_moderated": "Mark sheet moderated",
+      "marks_sheet_approved": "Mark sheet approved",
+      "marks_sheet_reopened": "Mark sheet reopened",
+      "results_published": "Results published",
+      "results_republished": "Corrected results published",
+      "results_viewed": "Released results viewed"
     }
   },
   "status": {
@@ -1400,5 +1427,108 @@
     "paperSaved": "Paper saved.",
     "finalize": "Finalise",
     "paperFinalized": "Paper finalised. This version can no longer change."
+  },
+  "exams": {
+    "title": "Exams & results",
+    "intro": "Enter and check marks, approve them, and publish results as fixed versions.",
+    "tabs": {
+      "marks": "Marks",
+      "results": "Results",
+      "setup": "Setup"
+    },
+    "series": "Exam",
+    "noSeries": "No exams set up for this year.",
+    "noSeriesHelp": "The academic coordinator sets up exams, papers and grading scales.",
+    "noSheets": "No mark sheets for you in this exam.",
+    "noSheetsHelp": "You can enter marks for the classes and subjects you are assigned to teach.",
+    "noComponents": "This exam has no papers set up yet.",
+    "sheet": "Mark sheet",
+    "sheetStatuses": {
+      "open": "Open",
+      "submitted": "Submitted",
+      "moderated": "Moderated",
+      "approved": "Approved"
+    },
+    "outOf": "Out of {{max}}",
+    "weight": "weight {{weight}}",
+    "lockedHelp": {
+      "submitted": "Submitted for moderation. Only a moderator can change marks now.",
+      "moderated": "Moderated and waiting for approval.",
+      "approved": "Approved. Marks are locked; reopening needs a reason."
+    },
+    "correctHelp": "You are changing submitted marks. Each change is recorded with your reason.",
+    "reopened": "Reopened",
+    "markFor": "Mark for {{name}}",
+    "markStatuses": {
+      "absent": "Absent",
+      "exempt": "Exempt"
+    },
+    "markShort": {
+      "absent": "AB",
+      "exempt": "EX"
+    },
+    "changeReason": "Reason for the change",
+    "saveMarks_one": "Save {{count}} mark",
+    "saveMarks_other": "Save {{count}} marks",
+    "draftKept": "Unsaved marks are kept on this device until you save.",
+    "marksSaved": "Marks saved.",
+    "submit": "Submit for moderation",
+    "moderate": "Mark as moderated",
+    "approve": "Approve",
+    "reopen": "Reopen",
+    "reopenReason": "Reason for reopening",
+    "actionDone": {
+      "submit": "Sheet submitted.",
+      "moderate": "Sheet moderated.",
+      "approve": "Sheet approved.",
+      "reopen": "Sheet reopened."
+    },
+    "changeLog_one": "{{count}} recorded change",
+    "changeLog_other": "{{count}} recorded changes",
+    "total": "Total",
+    "average": "Average",
+    "rank": "Rank",
+    "exemptShort": "EX",
+    "absentShort": "AB",
+    "previewNote": "Preview from current marks. Results can be published once every sheet is approved.",
+    "releases": "Published versions",
+    "releasesHelp": "Each publication is a fixed copy. A correction publishes a new version with a reason; earlier versions stay as they were.",
+    "notPublished": "Not published yet.",
+    "correctionReason": "Reason for the new version",
+    "publish": "Publish results",
+    "publishNewVersion": "Publish corrected version",
+    "published": "Results published.",
+    "scales": "Grading scales",
+    "scalesHelp": "Changing a scale makes a new version; exams keep the version they were set up with.",
+    "scaleName": "Scale name",
+    "bands": "Bands",
+    "bandsHint": "One per line: lowest percentage, grade, optional label. Include a band at 0.",
+    "addScale": "Add scale",
+    "scaleSaved": "Grading scale saved.",
+    "newSeries": "New exam",
+    "seriesName": "Name",
+    "seriesNameHint": "For example First term test",
+    "scale": "Grading scale",
+    "addSeries": "Add exam",
+    "seriesSaved": "Exam added.",
+    "components": "Papers and components",
+    "componentsHelp": "Each grade and subject needs at least one paper. Weights decide how papers combine into the subject mark.",
+    "component": "paper",
+    "componentName": "Paper",
+    "maxMarks": "Max marks",
+    "weightLabel": "Weight",
+    "addComponent": "Add paper",
+    "componentSaved": "Paper added."
+  },
+  "results": {
+    "intro": "Results the school has published. Published results do not change; corrections appear as a new version.",
+    "noChildren": "No linked students yet. The school verifies guardian links before results are shown.",
+    "none": "No results have been published yet.",
+    "published": "published {{when}}",
+    "corrected": "Corrected (version {{version}})",
+    "percent": "%",
+    "grade": "Grade",
+    "rankOf": "{{rank}} of {{size}}",
+    "scale": "Grades ({{name}})"
   }
 }

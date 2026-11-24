@@ -76,10 +76,9 @@ export const NAV_GROUPS: NavGroup[] = [
         path: '/exams',
         labelKey: 'nav.exams',
         icon: SquarePen,
-        anyOf: ['marks.enter.scoped', 'marks.moderate', 'results.approve'],
-        soon: true,
+        anyOf: ['marks.enter.scoped', 'marks.moderate', 'results.approve', 'results.publish', 'exams.manage'],
       },
-      { path: '/results', labelKey: 'nav.results', icon: Award, anyOf: ['results.read.own'], soon: true },
+      { path: '/results', labelKey: 'nav.results', icon: Award, anyOf: ['results.read.own'] },
     ],
   },
   {

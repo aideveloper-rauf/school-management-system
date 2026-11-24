@@ -490,7 +490,100 @@ export interface ExamPaperItemTable {
   marks: string;
 }
 
+// Exams and results (migration 0010) -----------------------------------------
+export interface GradingScaleTable {
+  id: Generated<number>;
+  name: string;
+  created_at: CreatedAt;
+}
+export interface GradingScaleVersionTable {
+  id: Generated<number>;
+  scale_id: number;
+  version: number;
+  /** JSON [{ min, grade, label }] sorted by min descending. */
+  bands: string;
+  created_by: number | null;
+  created_at: CreatedAt;
+}
+export interface ExamSeriesTable {
+  id: Generated<number>;
+  academic_year_id: number;
+  term_id: number | null;
+  name: string;
+  grading_scale_version_id: number;
+  created_by: number | null;
+  created_at: CreatedAt;
+}
+export interface ExamComponentTable {
+  id: Generated<number>;
+  series_id: number;
+  grade_id: number;
+  subject_id: number;
+  name: string;
+  max_marks: string;
+  weight: Generated<string>;
+  paper_version_id: number | null;
+  created_at: CreatedAt;
+}
+export type MarkSheetStatus = 'open' | 'submitted' | 'moderated' | 'approved';
+export interface MarkSheetTable {
+  component_id: number;
+  class_section_id: number;
+  status: Generated<MarkSheetStatus>;
+  submitted_by: number | null;
+  submitted_at: Date | null;
+  moderated_by: number | null;
+  moderated_at: Date | null;
+  approved_by: number | null;
+  approved_at: Date | null;
+  reopened_by: number | null;
+  reopened_at: Date | null;
+  /** Free text; kept here only, never in audit metadata. */
+  reopen_reason: string | null;
+}
+export type MarkStatus = 'present' | 'absent' | 'exempt';
+export interface MarkTable {
+  component_id: number;
+  student_id: number;
+  raw_mark: string | null;
+  status: Generated<MarkStatus>;
+  max_marks: string;
+  entered_by: number | null;
+  entered_at: UpdatedAt;
+}
+export interface MarkChangeTable {
+  id: Generated<number>;
+  component_id: number;
+  student_id: number;
+  from_mark: string | null;
+  from_status: MarkStatus | null;
+  to_mark: string | null;
+  to_status: MarkStatus;
+  reason: string;
+  changed_by: number | null;
+  changed_at: CreatedAt;
+}
+export interface ResultReleaseTable {
+  id: Generated<number>;
+  series_id: number;
+  class_section_id: number;
+  version: number;
+  reason: string | null;
+  snapshot: string;
+  snapshot_sha256: string;
+  published_by: number | null;
+  published_at: CreatedAt;
+}
+
 export interface Database {
+  grading_scales: GradingScaleTable;
+  grading_scale_versions: GradingScaleVersionTable;
+  exam_series: ExamSeriesTable;
+  exam_components: ExamComponentTable;
+  mark_sheets: MarkSheetTable;
+  marks: MarkTable;
+  mark_changes: MarkChangeTable;
+  result_releases: ResultReleaseTable;
   questions: QuestionTable;
   question_versions: QuestionVersionTable;
   exam_papers: ExamPaperTable;
