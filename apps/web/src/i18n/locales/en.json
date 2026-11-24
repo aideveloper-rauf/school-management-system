@@ -35,7 +35,8 @@
     "staff": "Staff",
     "guardians": "Guardians",
     "imports": "Import data",
-    "learning": "Learning"
+    "learning": "Learning",
+    "questions": "Question bank"
   },
   "dashboard": {
     "welcome": "Welcome, {{name}}",
@@ -459,7 +460,11 @@
     "alreadyPublished": "This is already published.",
     "hasSubmissions": "Students have handed in work for this, so it cannot be deleted.",
     "pastDue": "The due date has passed and late work is not accepted.",
-    "submissionReturned": "Your teacher has already returned this work."
+    "submissionReturned": "Your teacher has already returned this work.",
+    "questionRetired": "This question has been retired.",
+    "reviewState": "This version cannot be sent for review or reviewed in its current state.",
+    "questionNotApproved": "Only approved question versions can be used in a paper.",
+    "alreadyFinal": "This paper version is already final."
   },
   "common": {
     "loading": "Loading…",
@@ -561,7 +566,8 @@
       "attendance": "Attendance",
       "timetable": "Timetable",
       "communication": "Announcements",
-      "learning": "Learning"
+      "learning": "Learning",
+      "exams": "Exams"
     },
     "entities": {
       "user": "User",
@@ -581,7 +587,9 @@
       "teacher_assignment": "Teaching assignment",
       "import_job": "Import",
       "announcement": "Announcement",
-      "learning_item": "Learning item"
+      "learning_item": "Learning item",
+      "question": "Question",
+      "paper": "Exam paper"
     },
     "metaKeys": {
       "fields": "Changed fields",
@@ -629,7 +637,10 @@
       "itemId": "Item id",
       "resubmitted": "Handed in again",
       "scored": "Scored",
-      "fileId": "File id"
+      "fileId": "File id",
+      "version": "Version",
+      "versionId": "Version id",
+      "questions": "Questions"
     },
     "fieldNames": {
       "displayName": "Full name",
@@ -746,7 +757,16 @@
       "learning_item_deleted": "Learning item deleted",
       "learning_work_submitted": "Work handed in",
       "learning_work_returned": "Work returned",
-      "learning_submission_file_downloaded": "Student work downloaded"
+      "learning_submission_file_downloaded": "Student work downloaded",
+      "question_created": "Question created",
+      "question_revised": "Question revised",
+      "question_review_requested": "Question sent for review",
+      "question_approved": "Question version approved",
+      "question_rejected": "Question version rejected",
+      "question_retired": "Question retired",
+      "paper_created": "Exam paper created",
+      "paper_draft_saved": "Exam paper draft saved",
+      "paper_finalized": "Exam paper finalised"
     }
   },
   "status": {
@@ -1288,5 +1308,97 @@
     "return": "Return to student",
     "updateReturn": "Update",
     "returnedMsg": "Work returned."
+  },
+  "questions": {
+    "title": "Question bank",
+    "intro": "Write and review questions, then build exam papers from approved versions.",
+    "tabs": {
+      "questions": "Questions",
+      "papers": "Exam papers"
+    },
+    "search": "Search questions",
+    "allSubjects": "All subjects",
+    "review": "Review status",
+    "anyReview": "Any status",
+    "reviewStatuses": {
+      "draft": "Draft",
+      "in_review": "In review",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "kinds": {
+      "mcq": "Multiple choice",
+      "short": "Short answer",
+      "essay": "Essay"
+    },
+    "difficulties": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "marks_one": "{{count}} mark",
+    "marks_other": "{{count}} marks",
+    "new": "New question",
+    "newHelp": "Saved as a draft. Send it for review when ready; only approved versions can go into papers.",
+    "empty": "No questions yet.",
+    "emptyHelp": "Questions you can write are for subjects you teach.",
+    "question": "Question",
+    "kind": "Type",
+    "marksLabel": "Marks",
+    "stem": "Question",
+    "options": "Choices (mark the correct one)",
+    "correctOption": "Choice {{n}} is correct",
+    "optionN": "Choice {{n}}",
+    "removeOption": "Remove choice",
+    "addOption": "Add choice",
+    "explanation": "Explanation",
+    "answer": "Model answer / marking scheme",
+    "source": "Source",
+    "licence": "Licence",
+    "licenceHint": "For material from elsewhere, e.g. past papers or CC BY.",
+    "language": "Language",
+    "difficulty": "Difficulty",
+    "outcome": "Learning outcome",
+    "outcomeHint": "The syllabus outcome this question checks.",
+    "saveDraft": "Save draft",
+    "saved": "Question saved as a draft.",
+    "newVersion": "Edit (new version)",
+    "editHelp": "Saving creates a new version. Earlier versions and papers that use them stay as they are.",
+    "saveVersion": "Save new version",
+    "versionSaved": "New version saved.",
+    "sendForReview": "Send for review",
+    "sentForReview": "Sent for review.",
+    "approve": "Approve",
+    "approved": "Version approved.",
+    "reject": "Reject",
+    "rejected": "Version rejected.",
+    "retire": "Retire",
+    "retired": "Question retired.",
+    "usedIn": "Used in: {{papers}}",
+    "newPaper": "New paper",
+    "createPaper": "Create",
+    "noPapers": "No papers yet.",
+    "paperStatuses": {
+      "draft": "Draft",
+      "final": "Final"
+    },
+    "version": "Version",
+    "showKey": "Show answer key",
+    "finalHelp": "This version is final and cannot change. Saving starts a new draft version.",
+    "paperInstructions": "Instructions to candidates",
+    "duration": "Minutes",
+    "paperQuestions": "{{count}} questions · {{total}} marks",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "removeFromPaper": "Remove from paper",
+    "addFromBank": "Add approved questions",
+    "noApproved": "No more approved questions for this subject.",
+    "addHelp": "The approved version at the time of saving is fixed into the paper.",
+    "add": "Add",
+    "savePaper": "Save draft",
+    "startNewVersion": "Save as new version",
+    "paperSaved": "Paper saved.",
+    "finalize": "Finalise",
+    "paperFinalized": "Paper finalised. This version can no longer change."
   }
 }

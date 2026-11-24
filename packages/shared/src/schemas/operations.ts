@@ -114,3 +114,61 @@ export const returnSubmissionSchema = z.object({
   feedback: z.string().trim().max(5_000).nullable().default(null),
   score: score.nullable().default(null),
 });
+
+// Question bank and papers (roadmap L-4, L-5) -------------------------------
+const marks = z.number().positive().max(999).multipleOf(0.01);
+export const questionContentSchema = z
+  .object({
+    kind: z.enum(['mcq', 'short', 'essay']),
+    stem: z.string().trim().min(1).max(10_000),
+    options: z
+      .array(z.object({ text: z.string().trim().min(1).max(1_000), correct: z.boolean() }))
+      .min(2)
+      .max(8)
+      .nullable()
+      .default(null),
+    answer: z.string().trim().max(10_000).nullable().default(null),
+    marks,
+    licence: z.string().trim().max(64).nullable().default(null),
+    source: z.string().trim().max(191).nullable().default(null),
+  })
+  .superRefine((v, ctx) => {
+    if (v.kind === 'mcq' && (!v.options || v.options.filter((o) => o.correct).length !== 1)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['options'],
+        message: 'A multiple-choice question needs options with exactly one correct answer',
+      });
+    }
+    if (v.kind !== 'mcq' && v.options)
+      ctx.addIssue({ code: 'custom', path: ['options'], message: 'Only multiple-choice questions have options' });
+  });
+export const createQuestionSchema = z.object({
+  subjectId: idSchema,
+  gradeId: idSchema.nullable().default(null),
+  language: z.enum(['en', 'si', 'ta']),
+  outcome: z.string().trim().max(191).nullable().default(null),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+  content: questionContentSchema,
+});
+export const questionListQuerySchema = paginationQuerySchema.extend({
+  subjectId: z.coerce.number().int().positive().optional(),
+  gradeId: z.coerce.number().int().positive().optional(),
+  q: z.string().trim().max(100).optional(),
+  review: z.enum(['draft', 'in_review', 'approved', 'rejected']).optional(),
+  difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
+});
+export const reviewQuestionSchema = z.object({ versionId: idSchema, decision: z.enum(['approved', 'rejected']) });
+export const createPaperSchema = z.object({
+  title: z.string().trim().min(1).max(191),
+  subjectId: idSchema,
+  gradeId: idSchema,
+});
+export const savePaperVersionSchema = z.object({
+  instructions: z.string().trim().max(5_000).nullable().default(null),
+  durationMinutes: z.number().int().min(5).max(600).nullable().default(null),
+  items: z
+    .array(z.object({ questionVersionId: idSchema, marks: marks.optional() }))
+    .max(200)
+    .refine((v) => new Set(v.map((i) => i.questionVersionId)).size === v.length, 'Each question once'),
+});

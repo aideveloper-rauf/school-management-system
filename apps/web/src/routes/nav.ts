@@ -8,6 +8,7 @@ import {
   CalendarClock,
   ClipboardCheck,
   Contact,
+  FileQuestion,
   FileUp,
   GraduationCap,
   LayoutDashboard,
@@ -64,6 +65,12 @@ export const NAV_GROUPS: NavGroup[] = [
         labelKey: 'nav.students',
         icon: GraduationCap,
         anyOf: ['students.read.scoped', 'students.read.all'],
+      },
+      {
+        path: '/questions',
+        labelKey: 'nav.questions',
+        icon: FileQuestion,
+        anyOf: ['questions.author', 'questions.review'],
       },
       {
         path: '/exams',

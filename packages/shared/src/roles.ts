@@ -39,6 +39,9 @@ export const PERMISSIONS = [
   'learning.manage.all',
   'learning.read.all',
   'learning.read.own',
+  // Question bank and exam papers
+  'questions.author',
+  'questions.review',
   // Assessment
   'marks.enter.scoped',
   'marks.moderate',
@@ -99,6 +102,8 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'timetable.manage',
     'learning.manage.all',
     'learning.read.all',
+    'questions.author',
+    'questions.review',
     'marks.moderate',
     'announcements.publish',
   ],
@@ -108,6 +113,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'students.read.scoped',
     'attendance.record.scoped',
     'learning.manage.scoped',
+    'questions.author',
     'marks.enter.scoped',
   ],
   registrar: [...READ_BASICS, 'academic.structure.read', 'students.read.all', 'students.manage', 'guardians.link.manage'],

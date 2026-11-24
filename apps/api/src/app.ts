@@ -18,6 +18,7 @@ import { attendanceRoutes } from './modules/attendance/routes.js';
 import { timetableRoutes } from './modules/timetable/routes.js';
 import { announcementRoutes } from './modules/announcements/routes.js';
 import { learningRoutes } from './modules/learning/routes.js';
+import { questionRoutes } from './modules/questions/routes.js';
 
 export interface BuildAppOptions {
   config: AppConfig;
@@ -71,6 +72,7 @@ export async function buildApp({ config, db, logger = true }: BuildAppOptions): 
       await v1.register(timetableRoutes, { db });
       await v1.register(announcementRoutes, { db });
       await v1.register(learningRoutes, { db, config });
+      await v1.register(questionRoutes, { db });
     },
     { prefix: API_PREFIX },
   );

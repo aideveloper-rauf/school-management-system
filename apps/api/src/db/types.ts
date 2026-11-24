@@ -432,7 +432,70 @@ export interface SubmissionFileTable {
   file_id: number;
 }
 
+// Question bank and papers (migration 0009) ----------------------------------
+export interface QuestionTable {
+  id: Generated<number>;
+  subject_id: number;
+  grade_id: number | null;
+  language: string;
+  outcome: string | null;
+  difficulty: 'easy' | 'medium' | 'hard';
+  is_retired: Generated<number>;
+  created_by: number | null;
+  created_at: CreatedAt;
+}
+export interface QuestionVersionTable {
+  id: Generated<number>;
+  question_id: number;
+  version: number;
+  kind: 'mcq' | 'short' | 'essay';
+  stem: string;
+  /** JSON: [{ text, correct }] for MCQ. */
+  options: string | null;
+  /** Model answer / marking scheme — the answer key. */
+  answer: string | null;
+  marks: string;
+  licence: string | null;
+  source: string | null;
+  review_status: Generated<'draft' | 'in_review' | 'approved' | 'rejected'>;
+  reviewed_by: number | null;
+  reviewed_at: Date | null;
+  created_by: number | null;
+  created_at: CreatedAt;
+}
+export interface ExamPaperTable {
+  id: Generated<number>;
+  title: string;
+  subject_id: number;
+  grade_id: number;
+  created_by: number | null;
+  created_at: CreatedAt;
+}
+export interface ExamPaperVersionTable {
+  id: Generated<number>;
+  paper_id: number;
+  version: number;
+  instructions: string | null;
+  duration_minutes: number | null;
+  status: Generated<'draft' | 'final'>;
+  finalized_by: number | null;
+  finalized_at: Date | null;
+  created_by: number | null;
+  created_at: CreatedAt;
+}
+export interface ExamPaperItemTable {
+  paper_version_id: number;
+  position: number;
+  question_version_id: number;
+  marks: string;
+}
+
 export interface Database {
+  questions: QuestionTable;
+  question_versions: QuestionVersionTable;
+  exam_papers: ExamPaperTable;
+  exam_paper_versions: ExamPaperVersionTable;
+  exam_paper_items: ExamPaperItemTable;
   stored_files: StoredFileTable;
   learning_items: LearningItemTable;
   learning_item_files: LearningItemFileTable;

@@ -7,6 +7,7 @@ import * as m0005 from './0005_people.js';
 import * as m0006 from './0006_attendance.js';
 import * as m0007 from './0007_timetable_announcements.js';
 import * as m0008 from './0008_learning.js';
+import * as m0009 from './0009_question_bank.js';
 
 /**
  * Static registry so migrations work identically from tsx and compiled dist/.
@@ -21,6 +22,7 @@ const migrations: Record<string, Migration> = {
   '0006_attendance': m0006,
   '0007_timetable_announcements': m0007,
   '0008_learning': m0008,
+  '0009_question_bank': m0009,
 };
 
 export const migrationProvider: MigrationProvider = {

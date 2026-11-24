@@ -143,7 +143,7 @@ removes expired sessions and old login attempts.
 - `HashRouter` is used so the static build works on any host; switch to `BrowserRouter` once the `.htaccess`
   rewrite is confirmed on the target plan.
 
-## 5. Current schema (migrations 0001–0008)
+## 5. Current schema (migrations 0001–0009)
 
 - **0001 foundation:** `schools`, `users`, `user_roles`, `sessions`, `login_attempts`, `audit_events`, `academic_years`,
   `terms`, `jobs`, `app_meta`, plus Kysely's `schema_migrations` tables.
@@ -156,6 +156,7 @@ removes expired sessions and old login attempts.
 - **0006 attendance:** `attendance_sessions` (unique per section + date), `attendance_records`, `attendance_corrections`.
 - **0007:** `timetable_entries` (clash keys), `announcements`, `announcement_reads`.
 - **0008 learning:** `stored_files`, `learning_items`, `learning_item_files`, `submissions`, `submission_files`.
+- **0009 question bank:** `questions`, `question_versions`, `exam_papers`, `exam_paper_versions`, `exam_paper_items`.
 - **0003:** adds 0001's foreign keys. 0001 declared them inline (`.references()`), which **MySQL silently ignores**
   (MariaDB honours them, so 0003 skips existing keys). Always use `.addForeignKeyConstraint()`; ESLint rejects
   `.references()` in migrations and a schema test fails if any `*_id`/`*_by` column lacks a foreign key.
@@ -291,6 +292,16 @@ with `notify_email` and an email address. Per-period registers and SMS are not b
 - New permissions (roles.ts): `learning.manage.scoped` (teacher), `learning.manage.all` + `learning.read.all`
   (academic coordinator), `learning.read.all` (principal), `learning.read.own` (student, guardian) — part of the
   permission-matrix sign-off (P0).
+
+### Question bank and exam papers (`modules/questions/`, migration 0009)
+
+- `GET/POST /questions`, `GET /questions/:id`, `POST /questions/:id/versions` (edit = new draft version),
+  `/submit-review`, `/review` (`questions.review`, per version), `/retire`.
+- `GET/POST /papers`, `GET /papers/:id`, `PUT /papers/:id/draft`, `POST /papers/:id/finalize`,
+  `GET /paper-versions/:id?answers=false` (printable without the answer key).
+- Authors (`questions.author`, teachers) are limited to subjects they teach; reviewers (`questions.review`, coordinator)
+  see all. Papers hold exact **approved** question versions; a `final` version is frozen and changing it starts a new
+  draft version, so a paper already sat never changes.
 
 ## 6. Known gaps (tracked in backlog.md)
 

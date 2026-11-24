@@ -51,6 +51,10 @@ export const WEEKDAYS = [1, 2, 3, 4, 5, 6, 7] as const;
 export const ANNOUNCEMENT_AUDIENCES = ['school', 'role', 'grade', 'class', 'guardians_of_class'] as const;
 export type AnnouncementAudience = (typeof ANNOUNCEMENT_AUDIENCES)[number];
 
+export const QUESTION_KINDS = ['mcq', 'short', 'essay'] as const;
+export const DIFFICULTIES = ['easy', 'medium', 'hard'] as const;
+export const REVIEW_STATUSES = ['draft', 'in_review', 'approved', 'rejected'] as const;
+
 /**
  * Audit log categories → action prefixes. Shared so the API filter and the web filter agree.
  * Every audited action must start with one of these prefixes (a test checks the API's actions).
@@ -62,6 +66,7 @@ export const AUDIT_CATEGORIES = {
   attendance: ['attendance.'],
   timetable: ['timetable.'],
   learning: ['learning.'],
+  exams: ['question.', 'paper.', 'exam.', 'marks.', 'results.', 'grading_scale.'],
   communication: ['announcement.'],
   academic: ['academic_year.', 'term.', 'grade.', 'subject.', 'room.', 'class_section.', 'period.', 'calendar_event.'],
   settings: ['school.'],
