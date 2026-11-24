@@ -366,42 +366,49 @@ function MarkSheet({ componentId, classSectionId, onChanged }: { componentId: nu
             {dirtyIds.length > 0 && <span className="text-xs text-fg-faint">{t('exams.draftKept')}</span>}
           </div>
         )}
-        <div className="flex flex-wrap items-end gap-2 border-t border-line pt-4">
-          {s.can.submit && (
-            <Button icon={<Send className="size-4" />} disabled={dirtyIds.length > 0} busy={act.busy} onClick={() => void action('submit')}>
-              {t('exams.submit')}
-            </Button>
-          )}
-          {s.can.moderate && (
-            <Button icon={<ShieldCheck className="size-4" />} busy={act.busy} onClick={() => void action('moderate')}>
-              {t('exams.moderate')}
-            </Button>
-          )}
-          {s.can.approve && (
-            <Button variant="primary" icon={<CheckCircle2 className="size-4" />} busy={act.busy} onClick={() => void action('approve')}>
-              {t('exams.approve')}
-            </Button>
-          )}
-          {s.can.reopen && (
-            <>
-              <Input
-                aria-label={t('exams.reopenReason')}
-                placeholder={t('exams.reopenReason')}
-                className="w-72"
-                value={actionReason}
-                onChange={(e) => setActionReason(e.target.value)}
-              />
+        {(s.can.submit || s.can.moderate || s.can.approve || s.can.reopen) && (
+          <div className="flex flex-wrap items-end gap-2 border-t border-line pt-4">
+            {s.can.submit && (
               <Button
-                icon={<RotateCcw className="size-4" />}
-                disabled={!actionReason.trim()}
+                icon={<Send className="size-4" />}
+                disabled={dirtyIds.length > 0}
                 busy={act.busy}
-                onClick={() => void action('reopen')}
+                onClick={() => void action('submit')}
               >
-                {t('exams.reopen')}
+                {t('exams.submit')}
               </Button>
-            </>
-          )}
-        </div>
+            )}
+            {s.can.moderate && (
+              <Button icon={<ShieldCheck className="size-4" />} busy={act.busy} onClick={() => void action('moderate')}>
+                {t('exams.moderate')}
+              </Button>
+            )}
+            {s.can.approve && (
+              <Button variant="primary" icon={<CheckCircle2 className="size-4" />} busy={act.busy} onClick={() => void action('approve')}>
+                {t('exams.approve')}
+              </Button>
+            )}
+            {s.can.reopen && (
+              <>
+                <Input
+                  aria-label={t('exams.reopenReason')}
+                  placeholder={t('exams.reopenReason')}
+                  className="w-72"
+                  value={actionReason}
+                  onChange={(e) => setActionReason(e.target.value)}
+                />
+                <Button
+                  icon={<RotateCcw className="size-4" />}
+                  disabled={!actionReason.trim()}
+                  busy={act.busy}
+                  onClick={() => void action('reopen')}
+                >
+                  {t('exams.reopen')}
+                </Button>
+              </>
+            )}
+          </div>
+        )}
         {s.changes.length > 0 && (
           <details className="text-[0.8125rem]">
             <summary className="cursor-pointer font-medium">{t('exams.changeLog', { count: s.changes.length })}</summary>

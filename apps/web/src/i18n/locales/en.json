@@ -470,7 +470,10 @@
     "reasonRequired": "Give a reason for this change.",
     "sheetState": "That step is not possible for this mark sheet right now.",
     "marksIncomplete": "Enter a mark (or absent/exempt) for every student before submitting.",
-    "resultsNotApproved": "Every mark sheet for this class must be approved before publishing."
+    "resultsNotApproved": "Every mark sheet for this class must be approved before publishing.",
+    "guardianNeedsEmail": "Add the guardian's email address first; the invitation is sent there.",
+    "guardianNotVerified": "Verify at least one of this guardian's links before inviting them.",
+    "accountExists": "An account with this email or username already exists. Ask an administrator to link it."
   },
   "common": {
     "loading": "Loading…",
@@ -793,7 +796,9 @@
       "marks_sheet_reopened": "Mark sheet reopened",
       "results_published": "Results published",
       "results_republished": "Corrected results published",
-      "results_viewed": "Released results viewed"
+      "results_viewed": "Released results viewed",
+      "guardian_invited": "Guardian invited to sign in",
+      "student_account_created": "Student sign-in created"
     }
   },
   "status": {
@@ -959,7 +964,14 @@
       "confirm_other": "Move {{count}} students",
       "done_one": "{{count}} student promoted.",
       "done_other": "{{count}} students promoted."
-    }
+    },
+    "createAccount": "Create sign-in",
+    "createAccountTitle": "Create a sign-in for {{name}}",
+    "createAccountHelp": "The student signs in with this username and must choose a new password the first time.",
+    "username": "Username",
+    "usernameHint": "Letters, digits and . _ - only, e.g. 2027.010",
+    "temporaryPassword": "Temporary password",
+    "accountCreated": "Sign-in created. Give the student their username and temporary password."
   },
   "staff": {
     "title": "Staff",
@@ -1075,7 +1087,10 @@
     "added": "Guardian added.",
     "edit": "Edit guardian",
     "noMatches": "No guardians match.",
-    "empty": "No guardians yet."
+    "empty": "No guardians yet.",
+    "invite": "Invite to sign in",
+    "invited": "Invitation sent to {{email}}.",
+    "inviteHelp": "Sends a sign-in invitation to the guardian's email. Only verified links are visible to them."
   },
   "imports": {
     "title": "Import data",
@@ -1278,7 +1293,27 @@
     "reads_other": "{{count}} reads"
   },
   "portal": {
-    "child": "Child"
+    "child": "Child",
+    "todayLessons": "Today's lessons",
+    "fullWeek": "Full week",
+    "noLessonsToday": "No lessons today.",
+    "registersToday": "Today's registers",
+    "noClassTeacher": "You are not class teacher of any class.",
+    "taken": "Taken",
+    "notTaken": "Not taken",
+    "attendance30": "Attendance, last 30 days",
+    "noAttendance": "No attendance recorded yet.",
+    "absentOn": "Absent on",
+    "workDue": "Work due",
+    "allWork": "All work",
+    "nothingDue": "Nothing due.",
+    "notices": "Notices",
+    "allNotices": "All notices",
+    "unread_one": "{{count}} unread",
+    "unread_other": "{{count}} unread",
+    "latestResults": "Released results",
+    "allResults": "All results",
+    "privacy": "You only ever see your own records or your verified children's."
   },
   "learning": {
     "title": "Learning",

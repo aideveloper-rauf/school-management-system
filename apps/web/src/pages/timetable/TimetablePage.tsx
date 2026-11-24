@@ -57,7 +57,18 @@ export default function TimetablePage() {
   }, [options, target, view]);
 
   const key = view === 'class' ? 'classSectionId' : view === 'teacher' ? 'staffId' : 'roomId';
-  const path = view === 'mine' ? '/me/timetable' : target ? `/timetable${query({ [key]: target, academicYearId: yearId })}` : null;
+  // Guardians see a verified child's class timetable.
+  const children = useResource<{ items: Array<{ id: number; fullName: string }> }>(can('results.read.own') ? '/me/children' : null);
+  const [childId, setChildId] = useState('');
+  useEffect(() => {
+    if (!childId && children.data?.items.length) setChildId(String(children.data.items[0]!.id));
+  }, [children.data, childId]);
+  const path =
+    view === 'mine'
+      ? `/me/timetable${query({ studentId: childId })}`
+      : target
+        ? `/timetable${query({ [key]: target, academicYearId: yearId })}`
+        : null;
   const data = useResource<{ items: Entry[]; kind?: string }>(path);
   const entries = useMemo(() => data.data?.items ?? [], [data.data]);
   const days = useMemo(() => {
@@ -93,6 +104,19 @@ export default function TimetablePage() {
               </Select>
             )}
           </Field>
+          {view === 'mine' && (children.data?.items.length ?? 0) > 1 && (
+            <Field label={t('portal.child')}>
+              {(id) => (
+                <Select id={id} value={childId} onChange={(e) => setChildId(e.target.value)}>
+                  {children.data!.items.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.fullName}
+                    </option>
+                  ))}
+                </Select>
+              )}
+            </Field>
+          )}
           {view !== 'mine' && (
             <>
               <Field label={t('academic.year')}>

@@ -102,3 +102,22 @@ export async function staffIdOf(db: Db, userId: number): Promise<number | null> 
   const row = await db.selectFrom('staff_profiles').select('id').where('user_id', '=', userId).executeTakeFirst();
   return row?.id ?? null;
 }
+
+/**
+ * Family access: the student linked to this account, or — with `studentId` — a child the user is a verified
+ * guardian of. Throws NOT_FOUND otherwise. Returns null when the user is neither (e.g. staff without a child).
+ */
+export async function resolveFamilyStudent(db: Db, userId: number, studentId?: number): Promise<number | null> {
+  const own = await db.selectFrom('student_profiles').select('id').where('user_id', '=', userId).executeTakeFirst();
+  if (!studentId || studentId === own?.id) return own?.id ?? null;
+  const link = await db
+    .selectFrom('student_guardians as sg')
+    .innerJoin('guardian_profiles as gp', 'gp.id', 'sg.guardian_id')
+    .select('sg.student_id')
+    .where('sg.student_id', '=', studentId)
+    .where('sg.verification_status', '=', 'verified')
+    .where('gp.user_id', '=', userId)
+    .executeTakeFirst();
+  if (!link) throw notFound();
+  return studentId;
+}

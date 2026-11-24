@@ -318,7 +318,10 @@ function GuardianDrawer({ id, onClose, onChanged }: { id: number; onClose: () =>
               { label: t('staff.account'), value: g.account ? g.account.identifier : t('staff.noAccount') },
             ]}
           />
-          <Button onClick={() => setEditing(true)}>{t('guardians.edit')}</Button>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => setEditing(true)}>{t('guardians.edit')}</Button>
+            {!g.account && <InviteButton guardianId={g.id} email={g.email} onDone={() => (res.reload(), onChanged())} />}
+          </div>
           <section className="space-y-2">
             <h3 className="text-sm font-semibold">{t('guardians.students')}</h3>
             {g.students.length === 0 ? (
@@ -371,5 +374,31 @@ function GuardianDrawer({ id, onClose, onChanged }: { id: number; onClose: () =>
         />
       )}
     </Drawer>
+  );
+}
+
+function InviteButton({ guardianId, email, onDone }: { guardianId: number; email: string | null; onDone: () => void }) {
+  const { t } = useTranslation();
+  const toast = useToast();
+  const submit = useSubmit();
+  return (
+    <div className="space-y-2">
+      <Button
+        variant="primary"
+        busy={submit.busy}
+        disabled={!email}
+        title={email ? t('guardians.inviteHelp') : t('errors.guardianNeedsEmail')}
+        onClick={async () => {
+          const ok = await submit.run(() => api(`/guardians/${guardianId}/invite`, { method: 'POST' }));
+          if (ok) {
+            toast.success(t('guardians.invited', { email }));
+            onDone();
+          }
+        }}
+      >
+        {t('guardians.invite')}
+      </Button>
+      {submit.error && <Alert>{submit.error}</Alert>}
+    </div>
   );
 }

@@ -1,10 +1,12 @@
 import type { FastifyPluginAsync, FastifyRequest } from 'fastify';
+import { z } from 'zod';
 import { sql, type Kysely } from 'kysely';
 import {
   attendanceDateParamsSchema,
   attendanceRangeQuerySchema,
   correctionListQuerySchema,
   decideCorrectionSchema,
+  isoDateSchema,
   pageWindow,
   requestCorrectionSchema,
   saveAttendanceSchema,
@@ -17,7 +19,7 @@ import { recordAudit } from '../../lib/audit.js';
 import { AppError, forbidden, invalid, notFound } from '../../lib/errors.js';
 import { requirePermission } from '../../plugins/auth.js';
 import { routeId, todayIn } from '../people/common.js';
-import { canAccessClass, taughtSectionIds } from '../people/scope.js';
+import { canAccessClass, resolveFamilyStudent, taughtSectionIds } from '../people/scope.js';
 import { queueAbsenceNotice } from './notify.js';
 
 /**
@@ -289,6 +291,35 @@ export const attendanceRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { db
         isClassTeacher: r.class_teacher_user_id === auth.user.id,
       })),
     };
+  });
+
+  /** A student's own attendance, or a verified child's (`?studentId=`), over a date range (default 30 days). */
+  app.get('/me/attendance', { preHandler: requirePermission('self.profile.read') }, async (req) => {
+    const q = z
+      .object({ studentId: z.coerce.number().int().positive().optional(), from: isoDateSchema.optional(), to: isoDateSchema.optional() })
+      .parse(req.query);
+    const studentId = await resolveFamilyStudent(db, req.auth!.user.id, q.studentId);
+    if (!studentId) return { items: [], summary: { present: 0, absent: 0, late: 0, excused: 0 } };
+    const to = q.to ?? todayIn(await schoolTimezone(db));
+    const from =
+      q.from ??
+      (() => {
+        const d = new Date(`${to}T00:00:00Z`);
+        d.setUTCDate(d.getUTCDate() - 30);
+        return d.toISOString().slice(0, 10);
+      })();
+    const rows = await db
+      .selectFrom('attendance_records as r')
+      .innerJoin('attendance_sessions as s', 's.id', 'r.session_id')
+      .select(['s.session_date', 'r.status'])
+      .where('r.student_id', '=', studentId)
+      .where('s.session_date', '>=', from)
+      .where('s.session_date', '<=', to)
+      .orderBy('s.session_date', 'desc')
+      .execute();
+    const summary = { present: 0, absent: 0, late: 0, excused: 0 };
+    for (const r of rows) summary[r.status]++;
+    return { from, to, items: rows.map((r) => ({ date: r.session_date, status: r.status })), summary };
   });
 
   // Corrections ----------------------------------------------------------------

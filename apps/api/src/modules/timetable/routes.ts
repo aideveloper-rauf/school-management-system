@@ -7,7 +7,8 @@ import { recordAudit } from '../../lib/audit.js';
 import { AppError, invalid, notFound } from '../../lib/errors.js';
 import { requirePermission } from '../../plugins/auth.js';
 import { routeId } from '../people/common.js';
-import { staffIdOf } from '../people/scope.js';
+import { resolveFamilyStudent, staffIdOf } from '../people/scope.js';
+import { z } from 'zod';
 
 /**
  * Timetable (roadmap C-11). Read: `timetable.read` (every role — a timetable holds no personal data
@@ -149,9 +150,10 @@ export const timetableRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { db 
   /** My week: a teacher's lessons, or the class timetable of a student (current year). */
   app.get('/me/timetable', { preHandler: requirePermission('timetable.read') }, async (req) => {
     const userId = req.auth!.user.id;
+    const { studentId } = z.object({ studentId: z.coerce.number().int().positive().optional() }).parse(req.query);
     const year = await db.selectFrom('academic_years').select('id').where('is_current', '=', 1).executeTakeFirst();
     if (!year) return { kind: 'none', items: [] };
-    const staffId = await staffIdOf(db, userId);
+    const staffId = studentId ? null : await staffIdOf(db, userId);
     if (staffId) {
       const rows = await entries()
         .where('t.staff_id', '=', staffId)
@@ -161,11 +163,13 @@ export const timetableRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { db 
         .execute();
       return { kind: 'teacher', items: rows.map(toEntry) };
     }
+    // A student's own class, or a verified child's class for a guardian (?studentId=).
+    const familyStudent = await resolveFamilyStudent(db, userId, studentId);
+    if (!familyStudent) return { kind: 'none', items: [] };
     const enrolment = await db
       .selectFrom('enrollments as e')
-      .innerJoin('student_profiles as s', 's.id', 'e.student_id')
       .select('e.class_section_id')
-      .where('s.user_id', '=', userId)
+      .where('e.student_id', '=', familyStudent)
       .where('e.ends_on', 'is', null)
       .where('e.academic_year_id', '=', year.id)
       .executeTakeFirst();

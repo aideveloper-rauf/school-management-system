@@ -16,6 +16,7 @@ import {
 import type { Paginated, UserItem } from '@sms/shared';
 import { useAuth } from '../lib/auth';
 import { query, useResource } from '../lib/data';
+import { FamilyHome, TeacherDay } from './dashboard/Panels';
 import { formatDate, todayIso, addDaysIso, daysBetween } from '../lib/format';
 import { Badge, Card, EmptyState, PageHeader, Skeleton } from '../components/ui';
 
@@ -124,8 +125,11 @@ export function DashboardPage() {
     <>
       <PageHeader title={t(greetingKey(), { name })} description={longDate} />
 
-      {canAcademic || canUsers ? (
+      {can('results.read.own') && !canAcademic && !canUsers ? (
+        <FamilyHome />
+      ) : canAcademic || canUsers ? (
         <div className="space-y-6">
+          {can('attendance.record.scoped') && <TeacherDay />}
           {/* Key numbers */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
             {canUsers && (

@@ -317,6 +317,18 @@ with `notify_email` and an email address. Per-period registers and SMS are not b
 
 The default calculation rules are documented in `calculate.ts` and must be confirmed against the pilot school's sheets (P0-3).
 
+### Family portal and onboarding (`people/onboarding.ts`, `/me/*`)
+
+- `GET /me/children` (verified children, or the student themself), `GET /me/attendance?studentId&from&to`,
+  `GET /me/timetable?studentId`, `GET /me/results?studentId`, and learning items with `?studentId`. All go through
+  `resolveFamilyStudent` — the student themself or a **verified** guardian — and return `NOT_FOUND` for anyone else's child.
+  Staff record endpoints (`/students/:id`) stay closed to families.
+- `POST /guardians/:id/invite` (registrar): guardian-only account, needs an email and a verified link, sends an invitation.
+  `POST /students/:id/account` (registrar): student-only account with a school username and a temporary password.
+  Existing accounts are never taken over (409).
+- Web: students and guardians get a home with attendance (30 days), today's lessons, work due, notices and released
+  results, with a child switcher; teachers get today's registers and lessons on top of the staff dashboard.
+
 ## 6. Known gaps (tracked in backlog.md)
 
 - Field-level validation messages from the API are English validator text (translation keys only for business rules).

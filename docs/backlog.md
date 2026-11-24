@@ -45,7 +45,7 @@ Detailed tasks, IDs, dependencies and exit gates for each item: [`roadmap.md`](r
 - [x] Result publication as immutable versioned snapshots; correction = new version + reason
 
 ## Phase 4 — Family & certificates
-- [ ] Student and guardian portals (released results only)
+- [x] Student and guardian portals (released results only) + guardian/student sign-in onboarding (G-3)
 - [ ] Certificates: templates, unique serials, issue/revoke log, minimal public verification
 - [ ] Notifications (email/SMS adapters via queue)
 

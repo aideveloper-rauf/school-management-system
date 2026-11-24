@@ -116,6 +116,7 @@ export function StudentDrawer({ studentId, onClose, onChanged }: { studentId: nu
                     {t('students.edit')}
                   </Button>
                   <StatusActions student={s} onChanged={changed} />
+                  {!s.hasAccount && s.status === 'active' && <AccountAction student={s} onChanged={changed} />}
                 </div>
               )}
               <p className="text-xs text-fg-faint">{t('students.privacyNote')}</p>
@@ -609,6 +610,51 @@ function StatusActions({ student, onChanged }: { student: StudentDetail; onChang
           onDone={() => {
             setOpen(false);
             toast.success(active ? t('students.leave.done') : t('students.readmitted'));
+            onChanged();
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+function AccountAction({ student, onChanged }: { student: StudentDetail; onChanged: () => void }) {
+  const { t } = useTranslation();
+  const toast = useToast();
+  const [open, setOpen] = useState(false);
+  const fields: FieldDef[] = [
+    {
+      name: 'identifier',
+      label: t('students.username'),
+      type: 'text',
+      required: true,
+      hint: t('students.usernameHint'),
+      initial: student.admissionNo.toLowerCase().replace(/\//g, '.'),
+    },
+    {
+      name: 'temporaryPassword',
+      label: t('students.temporaryPassword'),
+      type: 'text',
+      required: true,
+      hint: t('users.onboardingTemporaryHint'),
+    },
+  ];
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>{t('students.createAccount')}</Button>
+      {open && (
+        <FormDrawer
+          title={t('students.createAccountTitle', { name: student.fullName })}
+          description={t('students.createAccountHelp')}
+          fields={fields}
+          initial={Object.fromEntries(fields.map((f) => [f.name, f.initial ?? '']))}
+          path={`/students/${student.id}/account`}
+          mode="create"
+          submitLabel={t('students.createAccount')}
+          onClose={() => setOpen(false)}
+          onDone={() => {
+            setOpen(false);
+            toast.success(t('students.accountCreated'));
             onChanged();
           }}
         />
