@@ -21,6 +21,9 @@ import { learningRoutes } from './modules/learning/routes.js';
 import { questionRoutes } from './modules/questions/routes.js';
 import { examRoutes } from './modules/exams/routes.js';
 import { certificateRoutes } from './modules/certificates/routes.js';
+import { analyticsRoutes } from './modules/analytics/routes.js';
+import { aiRoutes } from './modules/ai/routes.js';
+import { createAiProvider, type AiProvider } from './lib/ai.js';
 
 export interface BuildAppOptions {
   config: AppConfig;
@@ -28,7 +31,7 @@ export interface BuildAppOptions {
   logger?: boolean;
 }
 
-export async function buildApp({ config, db, logger = true }: BuildAppOptions): Promise<FastifyInstance> {
+export async function buildApp({ config, db, logger = true, ai }: BuildAppOptions & { ai?: AiProvider | null }): Promise<FastifyInstance> {
   const app = Fastify({
     logger: logger
       ? {
@@ -77,6 +80,8 @@ export async function buildApp({ config, db, logger = true }: BuildAppOptions): 
       await v1.register(questionRoutes, { db });
       await v1.register(examRoutes, { db });
       await v1.register(certificateRoutes, { db });
+      await v1.register(analyticsRoutes, { db });
+      await v1.register(aiRoutes, { db, ai: ai === undefined ? createAiProvider(config) : ai });
     },
     { prefix: API_PREFIX },
   );

@@ -143,7 +143,7 @@ removes expired sessions and old login attempts.
 - `HashRouter` is used so the static build works on any host; switch to `BrowserRouter` once the `.htaccess`
   rewrite is confirmed on the target plan.
 
-## 5. Current schema (migrations 0001–0012)
+## 5. Current schema (migrations 0001–0013)
 
 - **0001 foundation:** `schools`, `users`, `user_roles`, `sessions`, `login_attempts`, `audit_events`, `academic_years`,
   `terms`, `jobs`, `app_meta`, plus Kysely's `schema_migrations` tables.
@@ -161,6 +161,7 @@ removes expired sessions and old login attempts.
   `mark_changes`, `result_releases`.
 - **0011 certificates:** `certificate_templates`, `certificates`.
 - **0012 notifications:** `notification_deliveries`, `announcements.notify_guardians`.
+- **0013:** `schools.ai_enabled` (AI opt-in).
 - **0003:** adds 0001's foreign keys. 0001 declared them inline (`.references()`), which **MySQL silently ignores**
   (MariaDB honours them, so 0003 skips existing keys). Always use `.addForeignKeyConstraint()`; ESLint rejects
   `.references()` in migrations and a schema test fails if any `*_id`/`*_by` column lacks a foreign key.
@@ -353,6 +354,26 @@ The default calculation rules are documented in `calculate.ts` and must be confi
   skips guardians already sent that announcement on a channel, so retries never double-send.
 - `GET /ops/deliveries` (ops.status.read) and `deliveryFailures24h` / `smsTransport` on `GET /ops/status`.
 - Message texts are English; si/ta fall back to English until translated.
+
+### Analytics (`modules/analytics/`)
+
+`GET /analytics/overview?days` (`analytics.read`: principal, academic coordinator): enrolment and attendance rate per class
+of the current year, and per-class/subject averages from the **latest published** result release only. Any figure from
+fewer than 5 students is withheld (`null`, `suppressed`). No names or individual rows are returned.
+
+### AI drafting (`lib/ai.ts`, `modules/ai/`, migration 0013) — off by default
+
+- Needs all three: `FEATURE_AI=true`, a configured `AiProvider`, and the school's opt-in (`schools.ai_enabled`, toggled by
+  `school.settings.manage`). `GET /ai/status` reports each.
+- `POST /ai/question-drafts` (`ai.use`: teacher for subjects they teach, coordinator): sends **curriculum fields only**
+  (subject and grade names, outcome text, difficulty, language, count). `assertCurriculumOnly` refuses outcome text with
+  an email, phone or long number, or an active student's name. Provider output is validated (`cleanDrafts`) and returned as
+  drafts; a teacher saves chosen drafts as draft questions, which still go through review. Audit stores counts and the
+  provider name only — never prompt or output text.
+- **No provider ships yet** (ADR 0006): `createAiProvider` returns null, so the feature cannot switch on in production
+  until a provider is added. The intended provider is Claude via the official `@anthropic-ai/sdk`
+  (`client.messages.parse` with a zod output schema, model `claude-opus-5-5`, key in `ANTHROPIC_API_KEY`, streaming not
+  needed for short drafts, refusal stop reason handled as "no drafts").
 
 ## 6. Known gaps (tracked in backlog.md)
 

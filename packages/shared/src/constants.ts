@@ -69,6 +69,7 @@ export const AUDIT_CATEGORIES = {
   exams: ['question.', 'paper.', 'exam.', 'marks.', 'results.', 'grading_scale.'],
   communication: ['announcement.'],
   certificates: ['certificate.'],
+  ai: ['ai.'],
   academic: ['academic_year.', 'term.', 'grade.', 'subject.', 'room.', 'class_section.', 'period.', 'calendar_event.'],
   settings: ['school.'],
   backups: ['backup.'],

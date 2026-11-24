@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { ArrowDown, ArrowUp, CheckCircle2, FileQuestion, Files, Lock, Plus, Printer, Send, Trash2, XCircle } from 'lucide-react';
+import { ArrowDown, ArrowUp, CheckCircle2, FileQuestion, Files, Lock, Plus, Printer, Send, Sparkles, Trash2, XCircle } from 'lucide-react';
 import { DIFFICULTIES, LOCALES, QUESTION_KINDS, REVIEW_STATUSES, type Paginated } from '@sms/shared';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
@@ -119,6 +119,8 @@ function QuestionList() {
     return () => clearTimeout(h);
   }, [search]);
   const list = useResource<Paginated<QuestionRow>>(`/questions${query({ subjectId, review, q, page, pageSize: 25 })}`);
+  const ai = useResource<{ usable: boolean }>('/ai/status');
+  const [drafting, setDrafting] = useState(false);
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
@@ -156,6 +158,11 @@ function QuestionList() {
             </option>
           ))}
         </Select>
+        {ai.data?.usable && (
+          <Button icon={<Sparkles className="size-4" />} onClick={() => setDrafting(true)}>
+            {t('ai.draftButton')}
+          </Button>
+        )}
         <Button variant="primary" icon={<Plus className="size-4" />} onClick={() => setOpen('new')}>
           {t('questions.new')}
         </Button>
@@ -189,6 +196,7 @@ function QuestionList() {
       {list.data && list.data.total > list.data.pageSize && (
         <Pagination page={list.data.page} pageSize={list.data.pageSize} total={list.data.total} onPage={setPage} />
       )}
+      {drafting && <AiDraftDrawer onClose={() => setDrafting(false)} onSaved={list.reload} />}
       {open === 'new' && <QuestionEditor onClose={() => setOpen(null)} onDone={() => (setOpen(null), list.reload())} />}
       {typeof open === 'number' && <QuestionDrawer id={open} onClose={() => setOpen(null)} onChanged={list.reload} />}
     </div>
@@ -962,6 +970,169 @@ function PaperDrawer({ id, onClose, onChanged }: { id: number; onClose: () => vo
           )}
         </div>
       )}
+    </Drawer>
+  );
+}
+
+interface Draft {
+  kind: 'mcq' | 'short' | 'essay';
+  stem: string;
+  options: Array<{ text: string; correct: boolean }> | null;
+  answer: string | null;
+  marks: number;
+}
+
+/**
+ * AI drafting: curriculum fields only (no student information). Drafts are suggestions; a teacher saves the
+ * ones worth keeping as draft questions, which still need editing and review before use.
+ */
+function AiDraftDrawer({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+  const { t } = useTranslation();
+  const toast = useToast();
+  const { subjects, grades } = useCatalog();
+  const [subjectId, setSubjectId] = useState('');
+  const [gradeId, setGradeId] = useState('');
+  const [outcome, setOutcome] = useState('');
+  const [difficulty, setDifficulty] = useState('medium');
+  const [count, setCount] = useState('5');
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [saved, setSaved] = useState<Set<number>>(new Set());
+  const ask = useSubmit();
+  const save = useSubmit();
+  useEffect(() => {
+    if (!subjectId && subjects.length) setSubjectId(String(subjects[0]!.id));
+  }, [subjects, subjectId]);
+  async function generate() {
+    const res = await ask.run(() =>
+      api<{ drafts: Draft[] }>('/ai/question-drafts', {
+        method: 'POST',
+        body: { subjectId: Number(subjectId), gradeId: gradeId ? Number(gradeId) : null, outcome, difficulty, count: Number(count) },
+      }),
+    );
+    if (res) {
+      setDrafts(res.drafts);
+      setSaved(new Set());
+    }
+  }
+  async function keep(i: number) {
+    const d = drafts[i]!;
+    const ok = await save.run(() =>
+      api('/questions', {
+        method: 'POST',
+        body: {
+          subjectId: Number(subjectId),
+          gradeId: gradeId ? Number(gradeId) : null,
+          language: 'en',
+          difficulty,
+          outcome: outcome.trim() || null,
+          content: {
+            kind: d.kind,
+            stem: d.stem,
+            options: d.options,
+            answer: d.answer,
+            marks: d.marks,
+            source: t('ai.sourceLabel'),
+            licence: null,
+          },
+        },
+      }),
+    );
+    if (ok) {
+      setSaved((cur) => new Set(cur).add(i));
+      toast.success(t('ai.savedDraft'));
+      onSaved();
+    }
+  }
+  return (
+    <Drawer
+      open
+      wide
+      title={t('ai.title')}
+      description={t('ai.intro')}
+      onClose={onClose}
+      footer={<Button onClick={onClose}>{t('common.close')}</Button>}
+    >
+      <div className="space-y-5">
+        <Alert tone="info">{t('ai.privacy')}</Alert>
+        {(ask.error || save.error) && <Alert>{ask.error ?? save.error}</Alert>}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label={t('staff.subject')}>
+            {(id) => (
+              <Select id={id} value={subjectId} onChange={(e) => setSubjectId(e.target.value)}>
+                {subjects.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.name}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+          <Field label={t('announcements.grade')} optional={t('common.optional')}>
+            {(id) => (
+              <Select id={id} value={gradeId} onChange={(e) => setGradeId(e.target.value)}>
+                <option value="">{t('crud.none')}</option>
+                {grades.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.name}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+          <Field label={t('questions.difficulty')}>
+            {(id) => (
+              <Select id={id} value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
+                {DIFFICULTIES.map((d) => (
+                  <option key={d} value={d}>
+                    {t(`questions.difficulties.${d}`)}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+          <Field label={t('ai.count')}>
+            {(id) => <Input id={id} type="number" min={1} max={10} value={count} onChange={(e) => setCount(e.target.value)} />}
+          </Field>
+        </div>
+        <Field label={t('questions.outcome')} hint={t('ai.outcomeHint')} error={ask.fieldErrors.outcome}>
+          {(id) => <Input id={id} maxLength={500} value={outcome} onChange={(e) => setOutcome(e.target.value)} />}
+        </Field>
+        <Button
+          variant="primary"
+          icon={<Sparkles className="size-4" />}
+          busy={ask.busy}
+          disabled={!subjectId || outcome.trim().length < 3}
+          onClick={() => void generate()}
+        >
+          {t('ai.generate')}
+        </Button>
+        {drafts.length > 0 && (
+          <ol className="space-y-3">
+            {drafts.map((d, i) => (
+              <li key={i} className="space-y-2 rounded-lg border border-line p-3">
+                <p className="text-xs text-fg-muted">
+                  {t(`questions.kinds.${d.kind}`)} · {t('questions.marks', { count: d.marks })} ·{' '}
+                  <Badge tone="warn">{t('ai.unreviewed')}</Badge>
+                </p>
+                <p className="text-sm whitespace-pre-line">{d.stem}</p>
+                {d.options && (
+                  <ol className="list-[upper-alpha] pl-6 text-sm">
+                    {d.options.map((o, j) => (
+                      <li key={j} className={o.correct ? 'font-semibold text-ok' : ''}>
+                        {o.text}
+                      </li>
+                    ))}
+                  </ol>
+                )}
+                {d.answer && <p className="rounded bg-subtle p-2 text-[0.8125rem]">{d.answer}</p>}
+                <Button size="sm" disabled={saved.has(i)} busy={save.busy} onClick={() => void keep(i)}>
+                  {saved.has(i) ? t('ai.kept') : t('ai.keep')}
+                </Button>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
     </Drawer>
   );
 }

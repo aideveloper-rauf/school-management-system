@@ -50,5 +50,5 @@ Detailed tasks, IDs, dependencies and exit gates for each item: [`roadmap.md`](r
 - [x] Notifications (email/SMS adapters via queue) — delivery log, guardian preferences; SMS gateway adapter to confirm with the chosen provider (P0-9)
 
 ## Phase 5 — Analytics & optional AI (only after core is stable)
-- [ ] Dashboards from approved aggregates
-- [ ] AI provider adapter behind `FEATURE_AI`, school opt-in, de-identified prompts, human review
+- [x] Dashboards from approved aggregates (small-group suppression)
+- [ ] AI provider adapter behind `FEATURE_AI`, school opt-in, de-identified prompts, human review — framework, guards, opt-in and UI done; **no provider bundled yet** (needs the `@anthropic-ai/sdk` dependency approved, ADR 0006)

@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 import {
   Activity,
   Award,
+  BarChart3,
   BookOpen,
   BookOpenCheck,
   Briefcase,
@@ -96,6 +97,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { path: '/academic', labelKey: 'nav.academic', icon: BookOpenCheck, anyOf: ['academic.structure.read'] },
       { path: '/users', labelKey: 'nav.users', icon: Users, anyOf: ['users.read'] },
       { path: '/settings', labelKey: 'nav.settings', icon: Settings, anyOf: ['school.settings.read'] },
+      { path: '/analytics', labelKey: 'nav.analytics', icon: BarChart3, anyOf: ['analytics.read'] },
       { path: '/audit', labelKey: 'nav.audit', icon: ScrollText, anyOf: ['audit.read'] },
       { path: '/status', labelKey: 'nav.status', icon: Activity, anyOf: ['ops.status.read'] },
     ],

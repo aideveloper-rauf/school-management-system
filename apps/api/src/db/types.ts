@@ -10,6 +10,8 @@ export interface SchoolTable {
   short_name: string | null;
   default_locale: string;
   timezone: string;
+  /** Migration 0013: school opted in to AI drafting (also needs FEATURE_AI + a provider). */
+  ai_enabled: Generated<number>;
   created_at: CreatedAt;
   updated_at: UpdatedAt;
 }

@@ -12,6 +12,7 @@ const updateSchoolSchema = z
     shortName: z.string().trim().max(64).nullable(),
     defaultLocale: z.enum(LOCALES),
     timezone: z.string().min(1).max(64),
+    aiEnabled: z.boolean(),
   })
   .partial()
   .refine((v) => Object.keys(v).length > 0, 'At least one field is required');
@@ -27,9 +28,15 @@ export const schoolRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { db }) 
   });
 
   app.get('/school', { preHandler: requireAuth }, async () => {
-    const s = await db.selectFrom('schools').select(['name', 'short_name', 'default_locale', 'timezone']).executeTakeFirst();
+    const s = await db.selectFrom('schools').select(['name', 'short_name', 'default_locale', 'timezone', 'ai_enabled']).executeTakeFirst();
     if (!s) throw new AppError('SETUP_REQUIRED', 'errors.setupRequired');
-    return { name: s.name, shortName: s.short_name, defaultLocale: s.default_locale, timezone: s.timezone };
+    return {
+      name: s.name,
+      shortName: s.short_name,
+      defaultLocale: s.default_locale,
+      timezone: s.timezone,
+      aiEnabled: Boolean(s.ai_enabled),
+    };
   });
 
   app.patch('/school', { preHandler: requirePermission('school.settings.manage') }, async (req) => {
@@ -44,6 +51,7 @@ export const schoolRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { db }) 
           ...(input.shortName !== undefined && { short_name: input.shortName }),
           ...(input.defaultLocale !== undefined && { default_locale: input.defaultLocale }),
           ...(input.timezone !== undefined && { timezone: input.timezone }),
+          ...(input.aiEnabled !== undefined && { ai_enabled: input.aiEnabled ? 1 : 0 }),
         })
         .where('id', '=', s.id)
         .execute();

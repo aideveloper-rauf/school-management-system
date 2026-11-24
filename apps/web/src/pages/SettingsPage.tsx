@@ -169,6 +169,44 @@ export default function SettingsPage() {
           </div>
         )}
       </form>
+      {canManage && <AiSettings />}
     </>
+  );
+}
+
+/** School opt-in for AI drafting. Shown only when this installation has an AI provider configured. */
+function AiSettings() {
+  const { t } = useTranslation();
+  const toast = useToast();
+  const status = useResource<{ available: boolean; schoolEnabled: boolean }>('/ai/status');
+  const [busy, setBusy] = useState(false);
+  if (!status.data?.available) return null;
+  const on = status.data.schoolEnabled;
+  return (
+    <div className="mt-6">
+      <Card title={t('settings.aiTitle')} description={t('settings.aiHelp')}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm">{on ? t('settings.aiOn') : t('settings.aiOffState')}</p>
+          <Button
+            variant={on ? 'secondary' : 'primary'}
+            busy={busy}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                await api('/school', { method: 'PATCH', body: { aiEnabled: !on } });
+                toast.success(t('common.saved'));
+                status.reload();
+              } catch (e) {
+                toast.error(t((e as Error).message));
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            {on ? t('settings.aiDisable') : t('settings.aiEnable')}
+          </Button>
+        </div>
+      </Card>
+    </div>
   );
 }

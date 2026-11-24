@@ -37,7 +37,8 @@
     "imports": "Import data",
     "learning": "Learning",
     "questions": "Question bank",
-    "certificates": "Certificates"
+    "certificates": "Certificates",
+    "analytics": "Analytics"
   },
   "dashboard": {
     "welcome": "Welcome, {{name}}",
@@ -395,7 +396,13 @@
     "defaultLanguageHint": "New users start in this language; each person can change theirs.",
     "readOnly": "You can view these settings. Only administrators can change them.",
     "unsaved": "You have unsaved changes.",
-    "saved": "School settings saved."
+    "saved": "School settings saved.",
+    "aiTitle": "AI drafting (optional)",
+    "aiHelp": "Lets teachers ask an AI service for draft exam questions from a topic or learning outcome. No student information is ever sent, and every draft must be checked by a teacher and reviewed before use.",
+    "aiOn": "On for this school.",
+    "aiOffState": "Off for this school.",
+    "aiEnable": "Turn on",
+    "aiDisable": "Turn off"
   },
   "crud": {
     "add": "Add {{noun}}",
@@ -475,7 +482,10 @@
     "guardianNeedsEmail": "Add the guardian's email address first; the invitation is sent there.",
     "guardianNotVerified": "Verify at least one of this guardian's links before inviting them.",
     "accountExists": "An account with this email or username already exists. Ask an administrator to link it.",
-    "alreadyRevoked": "This certificate is already revoked."
+    "alreadyRevoked": "This certificate is already revoked.",
+    "aiOff": "AI drafting is not switched on for this school.",
+    "aiPersonalData": "Remove names, phone numbers, emails or ID numbers. Only describe the topic or learning outcome.",
+    "aiUnavailable": "The AI service could not be reached. Try again later; nothing else is affected."
   },
   "common": {
     "loading": "Loading…",
@@ -579,7 +589,8 @@
       "communication": "Announcements",
       "learning": "Learning",
       "exams": "Exams",
-      "certificates": "Certificates"
+      "certificates": "Certificates",
+      "ai": "AI"
     },
     "entities": {
       "user": "User",
@@ -662,7 +673,10 @@
       "changed": "Marks changed",
       "releaseId": "Release id",
       "certificateId": "Certificate id",
-      "templateId": "Template id"
+      "templateId": "Template id",
+      "requested": "Requested",
+      "returned": "Returned",
+      "provider": "Provider"
     },
     "fieldNames": {
       "displayName": "Full name",
@@ -808,7 +822,8 @@
       "certificate_template_created": "Certificate template created",
       "certificate_template_updated": "Certificate template changed",
       "certificate_issued": "Certificate issued",
-      "certificate_revoked": "Certificate revoked"
+      "certificate_revoked": "Certificate revoked",
+      "ai_question_drafts": "AI question drafts requested"
     }
   },
   "status": {
@@ -1659,5 +1674,37 @@
     "holder": "Issued to {{name}}",
     "issued": "Issued by {{school}} on {{date}}",
     "revokedOn": "Revoked on {{date}}"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "intro": "School-wide figures from saved registers and published results. No individual student is shown.",
+    "period": "Period",
+    "lastDays_one": "Last {{count}} day",
+    "lastDays_other": "Last {{count}} days",
+    "privacy": "Groups smaller than {{n}} students are hidden.",
+    "hidden": "Hidden (small group)",
+    "noYear": "Set a current academic year to see analytics.",
+    "attendance": "Attendance by class · {{year}}",
+    "enrolled": "Students",
+    "daysTaken": "Registers",
+    "noRegisters": "No registers",
+    "results": "Published results",
+    "resultsHelp": "Averages from the latest published version of each exam, never from unapproved marks.",
+    "noResults": "No results published this year yet.",
+    "classAverage": "class average"
+  },
+  "ai": {
+    "draftButton": "Draft with AI",
+    "title": "Draft questions with AI",
+    "intro": "Describe what to assess. Drafts are suggestions only.",
+    "privacy": "Only the subject, grade, learning outcome and difficulty are sent. Never type student names or other personal details.",
+    "count": "How many",
+    "outcomeHint": "For example: add and subtract fractions with unlike denominators.",
+    "generate": "Get drafts",
+    "unreviewed": "Not checked",
+    "keep": "Save as draft question",
+    "kept": "Saved",
+    "savedDraft": "Saved as a draft question. Edit it and send it for review.",
+    "sourceLabel": "AI draft, edited by teacher"
   }
 }

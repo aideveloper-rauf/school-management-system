@@ -34,6 +34,7 @@ const ExamsPage = lazy(() => import('./pages/exams/ExamsPage'));
 const ResultsPage = lazy(() => import('./pages/results/ResultsPage'));
 const CertificatesPage = lazy(() => import('./pages/certificates/CertificatesPage'));
 const VerifyPage = lazy(() => import('./pages/certificates/VerifyPage'));
+const AnalyticsPage = lazy(() => import('./pages/analytics/AnalyticsPage'));
 const PrintCertificatePage = lazy(() => import('./pages/certificates/PrintCertificatePage'));
 
 /** Built screens by nav path; the rest show a "not available yet" placeholder. */
@@ -55,6 +56,7 @@ const PAGES: Record<string, ComponentType> = {
   '/exams': ExamsPage,
   '/results': ResultsPage,
   '/certificates': CertificatesPage,
+  '/analytics': AnalyticsPage,
 };
 
 export function App() {
