@@ -167,6 +167,7 @@ duplicate / in-use / bad-reference / check errors (`fromDbError`) so races still
 | Class sections | `GET /class-sections?academicYearId&gradeId`, `POST`, `GET/PATCH/DELETE /class-sections/:id` | Unique per year+grade; active grade and room only; year/grade fixed after creation |
 | Periods | `GET/POST /periods`, `PATCH/DELETE /periods/:id` | `HH:MM`; no overlapping times; unique sequence |
 | Calendar | `GET /calendar-events?from&to&academicYearId`, `POST`, `PATCH/DELETE /calendar-events/:id` | Inside its year when linked; inclusive dates |
+| Year rollover | `POST /academic-years/:id/rollover` `{ fromAcademicYearId, dryRun }` | Copies class sections (name, grade, medium, capacity; home room only if still active) from another year; skips existing (grade + name) and retired grades, so re-running is safe; `dryRun` previews. Subjects are per grade, so nothing else to copy; students are not promoted |
 
 Reads need `academic.structure.read`, writes `academic.structure.manage`. Every write is audited in the same transaction
 with field names only. Deletes return `204`. Request schemas live in `@sms/shared` (`schemas/academic.ts`).

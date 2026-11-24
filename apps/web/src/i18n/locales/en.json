@@ -350,7 +350,28 @@
     "length": "Length",
     "weeks_one": "{{count}} week",
     "weeks_other": "{{count}} weeks",
-    "inUseHint": "Untick to retire it without deleting history."
+    "inUseHint": "Untick to retire it without deleting history.",
+    "rollover": {
+      "action": "Copy classes from another year",
+      "title": "Copy classes into {{year}}",
+      "intro": "Creates this year's class sections from another year's. Nothing changes until you confirm.",
+      "from": "Copy from",
+      "willCreate_one": "{{count}} class will be created:",
+      "willCreate_other": "{{count}} classes will be created:",
+      "willSkip_one": "{{count}} class will be skipped:",
+      "willSkip_other": "{{count}} classes will be skipped:",
+      "reason": {
+        "exists": "Already in this year",
+        "grade_inactive": "Grade retired"
+      },
+      "roomDropped": "Home room retired — left empty",
+      "nothing": "That year has no classes to copy.",
+      "note": "Subjects are set per grade, so they apply to the new classes automatically. Students are not moved.",
+      "confirm_one": "Create {{count}} class",
+      "confirm_other": "Create {{count}} classes",
+      "done_one": "{{count}} class created in {{year}}.",
+      "done_other": "{{count}} classes created in {{year}}."
+    }
   },
   "settings": {
     "title": "School settings",
@@ -582,6 +603,7 @@
       "academic_year_updated": "Academic year changed",
       "academic_year_deleted": "Academic year deleted",
       "academic_year_set_current": "Current year changed",
+      "academic_year_rolled_over": "Classes copied into a new year",
       "term_created": "Term added",
       "term_updated": "Term changed",
       "term_deleted": "Term deleted",

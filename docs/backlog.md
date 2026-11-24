@@ -22,7 +22,7 @@ Detailed tasks, IDs, dependencies and exit gates for each item: [`roadmap.md`](r
 - [x] Users & account UI: users page, change password, reset/accept-invite pages, forced password change screen (U-7)
 - [x] Terms CRUD; grades, class sections, subjects, rooms, periods, calendar (API; UI is the item below) — roadmap A-1…A-4
 - [x] Foreign keys actually enforced on MySQL (migration 0003) + guard tests
-- [ ] Year rollover helper (roadmap A-5)
+- [x] Year rollover helper (roadmap A-5; class sections only — student promotion comes with enrolment)
 - [x] School settings UI; academic structure UI (A-6, A-7)
 - [x] Audit log viewer UI; ops status UI (O-1, O-2)
 - [x] Backup/export CLI (DB dump + storage archive, encrypted) and restore runbook; record last backup in app_meta (O-3, O-4; full school data export for offboarding O-5 still open)

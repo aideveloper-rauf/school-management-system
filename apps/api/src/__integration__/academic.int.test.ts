@@ -302,3 +302,56 @@ describe('audit trail', () => {
     expect(Number(after.n)).toBe(Number(before.n));
   });
 });
+
+describe('year rollover', () => {
+  it('previews, copies class sections into a new year and is safe to repeat', async () => {
+    const from = await created(admin('POST', '/academic-years', { label: 'R2040', startsOn: '2040-01-02', endsOn: '2040-12-06' }));
+    const to = await created(admin('POST', '/academic-years', { label: 'R2041', startsOn: '2041-01-02', endsOn: '2041-12-06' }));
+    const g10 = await created(admin('POST', '/grades', { name: 'Grade 10', level: 10 }));
+    const g11 = await created(admin('POST', '/grades', { name: 'Grade 11', level: 11 }));
+    const keptRoom = await created(admin('POST', '/rooms', { name: 'Rollover room A' }));
+    const oldRoom = await created(admin('POST', '/rooms', { name: 'Rollover room B' }));
+    await created(
+      admin('POST', '/class-sections', { academicYearId: from, gradeId: g10, name: 'A', medium: 'si', capacity: 35, homeRoomId: keptRoom }),
+    );
+    await created(admin('POST', '/class-sections', { academicYearId: from, gradeId: g10, name: 'B', homeRoomId: oldRoom }));
+    await created(admin('POST', '/class-sections', { academicYearId: from, gradeId: g11, name: 'A' }));
+    await created(admin('POST', '/class-sections', { academicYearId: to, gradeId: g10, name: 'a' })); // already there (case-insensitive)
+    expect((await admin('PATCH', `/rooms/${oldRoom}`, { isActive: false })).statusCode).toBe(200);
+    expect((await admin('PATCH', `/grades/${g11}`, { isActive: false })).statusCode).toBe(200);
+
+    // Authorization and validation.
+    await expectError(teacher('POST', `/academic-years/${to}/rollover`, { fromAcademicYearId: from }), 403, 'FORBIDDEN');
+    await expectError(admin('POST', `/academic-years/${to}/rollover`, { fromAcademicYearId: to }), 422);
+    await expectError(admin('POST', `/academic-years/${to}/rollover`, { fromAcademicYearId: 999999 }), 422);
+    await expectError(admin('POST', `/academic-years/999999/rollover`, { fromAcademicYearId: from }), 404, 'NOT_FOUND');
+
+    const countSections = async () => (await admin('GET', `/class-sections?academicYearId=${to}`)).json().items.length as number;
+    const preview = (await admin('POST', `/academic-years/${to}/rollover`, { fromAcademicYearId: from, dryRun: true })).json();
+    expect(preview.dryRun).toBe(true);
+    expect(preview.created).toEqual([{ grade: { id: g10, name: 'Grade 10' }, name: 'B', homeRoomDropped: true }]);
+    expect(preview.skipped.map((s: { name: string; reason: string }) => `${s.name}:${s.reason}`).sort()).toEqual([
+      'A:exists',
+      'A:grade_inactive',
+    ]);
+    expect(await countSections()).toBe(1); // dry run wrote nothing
+
+    // Re-activate grade 11 so it is copied, then apply.
+    expect((await admin('PATCH', `/grades/${g11}`, { isActive: true })).statusCode).toBe(200);
+    const run = await admin('POST', `/academic-years/${to}/rollover`, { fromAcademicYearId: from });
+    expect(run.statusCode, run.body).toBe(200);
+    expect(run.json().created).toHaveLength(2);
+    const sections = (await admin('GET', `/class-sections?academicYearId=${to}`)).json().items;
+    expect(sections.map((s: { grade: { level: number }; name: string }) => `${s.grade.level}${s.name}`)).toEqual(['10a', '10B', '11A']);
+    expect(sections.find((s: { name: string }) => s.name === 'B').homeRoom).toBeNull();
+
+    const audit = await db.selectFrom('audit_events').selectAll().where('action', '=', 'academic_year.rolled_over').execute();
+    expect(audit).toHaveLength(1);
+    expect(audit[0]!.entity_id).toBe(String(to));
+
+    // Second run creates nothing and writes no audit entry.
+    const again = (await admin('POST', `/academic-years/${to}/rollover`, { fromAcademicYearId: from })).json();
+    expect(again.created).toHaveLength(0);
+    expect(await countSections()).toBe(3);
+  });
+});

@@ -5,6 +5,7 @@ import { termRoutes } from './terms.js';
 import { catalogRoutes } from './catalog.js';
 import { classSectionRoutes } from './class-sections.js';
 import { scheduleRoutes } from './schedule.js';
+import { rolloverRoutes } from './rollover.js';
 
 /**
  * Academic structure module. Each file follows the module pattern:
@@ -16,4 +17,5 @@ export const academicRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { db }
   await app.register(catalogRoutes, { db });
   await app.register(classSectionRoutes, { db });
   await app.register(scheduleRoutes, { db });
+  await app.register(rolloverRoutes, { db });
 };

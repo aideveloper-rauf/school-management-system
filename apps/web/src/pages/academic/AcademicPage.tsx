@@ -1,7 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { BellRing, BookOpen, CalendarCheck, CalendarDays, CalendarRange, DoorOpen, GraduationCap, Layers, ListChecks } from 'lucide-react';
+import {
+  BellRing,
+  BookOpen,
+  CalendarCheck,
+  CalendarDays,
+  CalendarRange,
+  CopyPlus,
+  DoorOpen,
+  GraduationCap,
+  Layers,
+  ListChecks,
+} from 'lucide-react';
 import { CALENDAR_EVENT_KINDS, LOCALES } from '@sms/shared';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
@@ -185,6 +196,7 @@ function YearsTab() {
   const { years, current, reload } = useYears();
   const [version, setVersion] = useState(0);
   const [yearId, setYearId] = useState('');
+  const [rolloverTo, setRolloverTo] = useState<Year | null>(null);
   useEffect(() => {
     if (!yearId && current) setYearId(String(current.id));
   }, [current, yearId]);
@@ -232,8 +244,21 @@ function YearsTab() {
           },
         ]}
         extraActions={(y) =>
-          canManage && !y.isCurrent
-            ? [{ label: t('academic.years.makeCurrent'), icon: <CalendarCheck className="size-4" />, onSelect: () => void makeCurrent(y) }]
+          canManage
+            ? [
+                ...(!y.isCurrent
+                  ? [
+                      {
+                        label: t('academic.years.makeCurrent'),
+                        icon: <CalendarCheck className="size-4" />,
+                        onSelect: () => void makeCurrent(y),
+                      },
+                    ]
+                  : []),
+                ...(years.length > 1
+                  ? [{ label: t('academic.rollover.action'), icon: <CopyPlus className="size-4" />, onSelect: () => setRolloverTo(y) }]
+                  : []),
+              ]
             : []
         }
         fields={[
@@ -282,7 +307,125 @@ function YearsTab() {
           toValues={(x) => ({ label: x.label, sequence: String(x.sequence), startsOn: x.startsOn, endsOn: x.endsOn })}
         />
       )}
+      {rolloverTo && <RolloverDrawer target={rolloverTo} years={years} onClose={() => setRolloverTo(null)} />}
     </div>
+  );
+}
+
+interface RolloverPlan {
+  dryRun: boolean;
+  created: Array<{ grade: { id: number; name: string }; name: string; homeRoomDropped: boolean }>;
+  skipped: Array<{ grade: { id: number; name: string }; name: string; reason: 'exists' | 'grade_inactive' }>;
+}
+
+/** Copy class sections from another year into `target`: preview first (dry run), then apply. */
+function RolloverDrawer({ target, years, onClose }: { target: Year; years: Year[]; onClose: () => void }) {
+  const { t } = useTranslation();
+  const toast = useToast();
+  const sources = years.filter((y) => y.id !== target.id);
+  // Default to the most recent year that starts before the target, else any other year.
+  const [fromId, setFromId] = useState(() => String((sources.find((y) => y.startsOn < target.startsOn) ?? sources[0])?.id ?? ''));
+  const [plan, setPlan] = useState<RolloverPlan | null>(null);
+  const preview = useSubmit();
+  const apply = useSubmit();
+
+  useEffect(() => {
+    if (!fromId) return;
+    setPlan(null);
+    let live = true;
+    void preview
+      .run(() =>
+        api<RolloverPlan>(`/academic-years/${target.id}/rollover`, {
+          method: 'POST',
+          body: { fromAcademicYearId: Number(fromId), dryRun: true },
+        }),
+      )
+      .then((p) => live && p && setPlan(p));
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- preview.run is stable; rerun only when the source changes
+  }, [fromId, target.id]);
+
+  async function run() {
+    const res = await apply.run(() =>
+      api<RolloverPlan>(`/academic-years/${target.id}/rollover`, { method: 'POST', body: { fromAcademicYearId: Number(fromId) } }),
+    );
+    if (res) {
+      toast.success(t('academic.rollover.done', { count: res.created.length, year: target.label }));
+      onClose();
+    }
+  }
+
+  return (
+    <Drawer
+      open
+      title={t('academic.rollover.title', { year: target.label })}
+      description={t('academic.rollover.intro')}
+      onClose={onClose}
+      footer={
+        <>
+          <Button onClick={onClose}>{t('common.cancel')}</Button>
+          <Button variant="primary" busy={apply.busy} disabled={!plan || plan.created.length === 0} onClick={() => void run()}>
+            {t('academic.rollover.confirm', { count: plan?.created.length ?? 0 })}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <label className="block space-y-1.5">
+          <span className="text-[0.8125rem] font-medium">{t('academic.rollover.from')}</span>
+          <Select value={fromId} onChange={(e) => setFromId(e.target.value)}>
+            {sources.map((y) => (
+              <option key={y.id} value={y.id}>
+                {y.label}
+              </option>
+            ))}
+          </Select>
+        </label>
+        {(preview.error || apply.error) && <Alert>{apply.error ?? preview.error}</Alert>}
+        {!plan ? (
+          preview.busy && <Loading />
+        ) : plan.created.length === 0 && plan.skipped.length === 0 ? (
+          <Alert tone="info">{t('academic.rollover.nothing')}</Alert>
+        ) : (
+          <>
+            <p className="text-[0.8125rem] text-fg-muted">{t('academic.rollover.willCreate', { count: plan.created.length })}</p>
+            {plan.created.length > 0 && (
+              <ul className="divide-y divide-line rounded-lg border border-line">
+                {plan.created.map((c) => (
+                  <li key={`${c.grade.id}-${c.name}`} className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2">
+                    <span>
+                      {c.grade.name} / {c.name}
+                    </span>
+                    {c.homeRoomDropped && <Badge tone="warn">{t('academic.rollover.roomDropped')}</Badge>}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {plan.skipped.length > 0 && (
+              <>
+                <p className="text-[0.8125rem] text-fg-muted">{t('academic.rollover.willSkip', { count: plan.skipped.length })}</p>
+                <ul className="divide-y divide-line rounded-lg border border-line">
+                  {plan.skipped.map((c) => (
+                    <li
+                      key={`${c.grade.id}-${c.name}`}
+                      className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 text-fg-muted"
+                    >
+                      <span>
+                        {c.grade.name} / {c.name}
+                      </span>
+                      <Badge>{t(`academic.rollover.reason.${c.reason}`)}</Badge>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            <p className="text-[0.8125rem] text-fg-muted">{t('academic.rollover.note')}</p>
+          </>
+        )}
+      </div>
+    </Drawer>
   );
 }
 

@@ -116,6 +116,17 @@ export const classSectionQuerySchema = z.object({
   gradeId: z.coerce.number().int().positive().optional(),
 });
 
+/**
+ * Year rollover: copy the class sections of `fromAcademicYearId` into the target year (route id).
+ * Sections already present (same grade + name) and sections of retired grades are skipped.
+ * `dryRun` returns the plan without writing. Subject mappings are per grade, so they carry over as-is.
+ */
+export const yearRolloverSchema = z.object({
+  fromAcademicYearId: z.number().int().positive(),
+  dryRun: z.boolean().default(false),
+});
+export type YearRollover = z.infer<typeof yearRolloverSchema>;
+
 // Bell schedule periods ------------------------------------------------------
 export const periodFields = z.object({
   label: label(32),
