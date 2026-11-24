@@ -345,7 +345,47 @@ export interface AttendanceCorrectionTable {
   created_at: CreatedAt;
 }
 
+// Timetable and announcements (migration 0007) -------------------------------
+export interface TimetableEntryTable {
+  id: Generated<number>;
+  academic_year_id: number;
+  class_section_id: number;
+  /** 1 = Monday … 7 = Sunday. */
+  day_of_week: number;
+  period_id: number;
+  subject_id: number;
+  staff_id: number | null;
+  room_id: number | null;
+  created_by: number | null;
+  created_at: CreatedAt;
+  updated_at: UpdatedAt;
+}
+export type AnnouncementAudience = 'school' | 'role' | 'grade' | 'class' | 'guardians_of_class';
+export interface AnnouncementTable {
+  id: Generated<number>;
+  title: string;
+  body: string;
+  audience: AnnouncementAudience;
+  audience_role: string | null;
+  audience_grade_id: number | null;
+  audience_class_section_id: number | null;
+  published_at: Date | null;
+  expires_on: string | null;
+  withdrawn_at: Date | null;
+  created_by: number | null;
+  created_at: CreatedAt;
+  updated_at: UpdatedAt;
+}
+export interface AnnouncementReadTable {
+  announcement_id: number;
+  user_id: number;
+  read_at: CreatedAt;
+}
+
 export interface Database {
+  timetable_entries: TimetableEntryTable;
+  announcements: AnnouncementTable;
+  announcement_reads: AnnouncementReadTable;
   attendance_sessions: AttendanceSessionTable;
   attendance_records: AttendanceRecordTable;
   attendance_corrections: AttendanceCorrectionTable;

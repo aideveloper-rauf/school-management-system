@@ -26,6 +26,8 @@ const StaffPage = lazy(() => import('./pages/staff/StaffPage'));
 const GuardiansPage = lazy(() => import('./pages/guardians/GuardiansPage'));
 const ImportsPage = lazy(() => import('./pages/imports/ImportsPage'));
 const AttendancePage = lazy(() => import('./pages/attendance/AttendancePage'));
+const TimetablePage = lazy(() => import('./pages/timetable/TimetablePage'));
+const AnnouncementsPage = lazy(() => import('./pages/announcements/AnnouncementsPage'));
 
 /** Built screens by nav path; the rest show a "not available yet" placeholder. */
 const PAGES: Record<string, ComponentType> = {
@@ -39,6 +41,8 @@ const PAGES: Record<string, ComponentType> = {
   '/guardians': GuardiansPage,
   '/imports': ImportsPage,
   '/attendance': AttendancePage,
+  '/timetable': TimetablePage,
+  '/announcements': AnnouncementsPage,
 };
 
 export function App() {

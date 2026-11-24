@@ -46,6 +46,11 @@ export const IMPORT_COLUMNS: Record<ImportKind, { required: readonly string[]; o
 export const ATTENDANCE_STATUSES = ['present', 'absent', 'late', 'excused'] as const;
 export type AttendanceStatus = (typeof ATTENDANCE_STATUSES)[number];
 
+/** ISO weekday numbers: 1 = Monday … 7 = Sunday. Schools choose which days they teach. */
+export const WEEKDAYS = [1, 2, 3, 4, 5, 6, 7] as const;
+export const ANNOUNCEMENT_AUDIENCES = ['school', 'role', 'grade', 'class', 'guardians_of_class'] as const;
+export type AnnouncementAudience = (typeof ANNOUNCEMENT_AUDIENCES)[number];
+
 /**
  * Audit log categories → action prefixes. Shared so the API filter and the web filter agree.
  * Every audited action must start with one of these prefixes (a test checks the API's actions).
@@ -55,6 +60,8 @@ export const AUDIT_CATEGORIES = {
   people: ['user.', 'role.', 'setup.'],
   records: ['student.', 'staff.', 'guardian.', 'enrollment.', 'teacher_assignment.', 'import.'],
   attendance: ['attendance.'],
+  timetable: ['timetable.'],
+  communication: ['announcement.'],
   academic: ['academic_year.', 'term.', 'grade.', 'subject.', 'room.', 'class_section.', 'period.', 'calendar_event.'],
   settings: ['school.'],
   backups: ['backup.'],

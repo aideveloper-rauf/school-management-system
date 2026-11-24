@@ -143,7 +143,7 @@ removes expired sessions and old login attempts.
 - `HashRouter` is used so the static build works on any host; switch to `BrowserRouter` once the `.htaccess`
   rewrite is confirmed on the target plan.
 
-## 5. Current schema (migrations 0001–0006)
+## 5. Current schema (migrations 0001–0007)
 
 - **0001 foundation:** `schools`, `users`, `user_roles`, `sessions`, `login_attempts`, `audit_events`, `academic_years`,
   `terms`, `jobs`, `app_meta`, plus Kysely's `schema_migrations` tables.
@@ -154,6 +154,7 @@ removes expired sessions and old login attempts.
 - **0005 people:** `staff_profiles`, `student_profiles`, `student_status_events`, `enrollments`, `guardian_profiles`,
   `student_guardians`, `teacher_assignments`, `class_sections.class_teacher_id`, `import_jobs`.
 - **0006 attendance:** `attendance_sessions` (unique per section + date), `attendance_records`, `attendance_corrections`.
+- **0007:** `timetable_entries` (clash keys), `announcements`, `announcement_reads`.
 - **0003:** adds 0001's foreign keys. 0001 declared them inline (`.references()`), which **MySQL silently ignores**
   (MariaDB honours them, so 0003 skips existing keys). Always use `.addForeignKeyConstraint()`; ESLint rejects
   `.references()` in migrations and a schema test fails if any `*_id`/`*_by` column lacks a foreign key.
@@ -260,6 +261,17 @@ assignments and class teacher), Guardians (verification queue + directory), Impo
 Newly absent students queue `attendance.absence_notice` (idempotency key per student and day; 30-minute delay so quick
 corrections cancel it; moved out of 20:00–07:00 school time). The job re-checks the record and emails verified guardians
 with `notify_email` and an email address. Per-period registers and SMS are not built yet.
+
+### Timetable and announcements (`modules/timetable/`, `modules/announcements/`, migration 0007)
+
+- **Timetable** — `GET /timetable?classSectionId|staffId|roomId&academicYearId`, `GET /me/timetable`, `POST/PATCH/DELETE
+  /timetable-entries`. Read: `timetable.read`; change: `timetable.manage`. Lessons only in non-break periods, only subjects
+  the grade takes, only teachers assigned to that class and subject. Clashes are refused with `errors.timetableClassBusy` /
+  `TeacherBusy` / `RoomBusy`; unique keys (class/teacher/room × day × period, per year) back this up.
+- **Announcements** — feed `GET /announcements` (with `unread` count), `POST /announcements/:id/read`; publisher
+  `GET /announcements/manage`, `POST /announcements`, `PUT /announcements/:id` (drafts only), `/publish`, `/withdraw`,
+  `DELETE` (drafts only). Audiences: school, role, grade, class, guardians of a class. Grade/class audiences reach students
+  enrolled now, their **verified** guardians, and staff who teach there. Published text is never rewritten — withdraw instead.
 
 ## 6. Known gaps (tracked in backlog.md)
 

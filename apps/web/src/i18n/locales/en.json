@@ -447,7 +447,13 @@
     "notSchoolDay": "The school calendar marks this day as closed.",
     "attendanceLocked": "This register can no longer be changed directly. Request a correction instead.",
     "correctionPending": "A correction for this student and day is already waiting for a decision.",
-    "correctionDecided": "This correction has already been decided."
+    "correctionDecided": "This correction has already been decided.",
+    "timetableClassBusy": "This class already has a lesson in that period.",
+    "timetableTeacherBusy": "That teacher is teaching another class in that period.",
+    "timetableRoomBusy": "That room is in use in that period.",
+    "timetableTeacherNotAssigned": "Assign this teacher to the class and subject first (Staff → Teaching).",
+    "announcementPublished": "Published announcements cannot be changed or deleted. Withdraw it and publish a new one.",
+    "announcementNotLive": "This announcement is not currently published."
   },
   "common": {
     "loading": "Loading…",
@@ -546,7 +552,9 @@
       "settings": "Settings",
       "backups": "Backups",
       "records": "Student & staff records",
-      "attendance": "Attendance"
+      "attendance": "Attendance",
+      "timetable": "Timetable",
+      "communication": "Announcements"
     },
     "entities": {
       "user": "User",
@@ -564,7 +572,8 @@
       "staff": "Staff member",
       "guardian": "Guardian",
       "teacher_assignment": "Teaching assignment",
-      "import_job": "Import"
+      "import_job": "Import",
+      "announcement": "Announcement"
     },
     "metaKeys": {
       "fields": "Changed fields",
@@ -603,7 +612,11 @@
       "late": "Late",
       "excused": "Excused",
       "to": "New status",
-      "correctionId": "Correction id"
+      "correctionId": "Correction id",
+      "entryId": "Lesson id",
+      "dayOfWeek": "Day",
+      "periodId": "Period id",
+      "audience": "Audience"
     },
     "fieldNames": {
       "displayName": "Full name",
@@ -705,7 +718,15 @@
       "attendance_corrected": "Attendance corrected",
       "attendance_correction_requested": "Attendance correction requested",
       "attendance_correction_approved": "Attendance correction approved",
-      "attendance_correction_rejected": "Attendance correction rejected"
+      "attendance_correction_rejected": "Attendance correction rejected",
+      "timetable_entry_created": "Lesson added to timetable",
+      "timetable_entry_updated": "Timetable lesson changed",
+      "timetable_entry_deleted": "Lesson removed from timetable",
+      "announcement_drafted": "Announcement drafted",
+      "announcement_updated": "Announcement draft changed",
+      "announcement_published": "Announcement published",
+      "announcement_withdrawn": "Announcement withdrawn",
+      "announcement_deleted": "Announcement draft deleted"
     }
   },
   "status": {
@@ -1111,5 +1132,82 @@
     "approved": "Correction approved.",
     "rejected": "Correction rejected.",
     "reasonPrivacy": "Reasons are visible to approvers and the person who asked, and are never copied into the audit log."
+  },
+  "timetable": {
+    "title": "Timetable",
+    "intro": "Your week and the timetables of classes, teachers and rooms.",
+    "introManage": "Build each class's week. Clashes for classes, teachers and rooms are refused.",
+    "view": "Show",
+    "views": {
+      "mine": "My week",
+      "class": "Class",
+      "teacher": "Teacher",
+      "room": "Room"
+    },
+    "showWeekend": "Show weekend",
+    "period": "Period",
+    "noPeriods": "No bell schedule yet.",
+    "noPeriodsHelp": "Add periods in Academic setup → Periods first.",
+    "nothingMine": "No timetable for you this year.",
+    "add": "Add lesson",
+    "addTitle": "Add a lesson",
+    "editTitle": "Change lesson",
+    "teacher": "Teacher",
+    "teacherHint": "Only teachers assigned to this class and subject are listed.",
+    "room": "Room",
+    "remove": "Remove lesson",
+    "removed": "Lesson removed."
+  },
+  "announcements": {
+    "title": "Announcements",
+    "intro": "Notices from the school for you, your classes or your children.",
+    "feed": "For me",
+    "manage": "Manage",
+    "empty": "No announcements for you right now.",
+    "unread": "Unread",
+    "until": "until {{date}}",
+    "audience": "Audience",
+    "audiences": {
+      "school": "Whole school",
+      "role": "Everyone with a role",
+      "grade": "A grade",
+      "class": "A class",
+      "guardians_of_class": "Guardians of a class"
+    },
+    "audienceRole": "All {{role}}s",
+    "audienceGuardiansOf": "Guardians of {{cls}}",
+    "audienceHelp": {
+      "school": "Everyone who can sign in will see this.",
+      "role": "Everyone who has this role will see this.",
+      "grade": "Students now in this grade, their verified guardians, and staff who teach the grade.",
+      "class": "Students now in this class, their verified guardians, and staff who teach the class.",
+      "guardians_of_class": "Only the verified guardians of students now in this class."
+    },
+    "role": "Role",
+    "grade": "Grade",
+    "state": "State",
+    "anyState": "All",
+    "states": {
+      "draft": "Draft",
+      "published": "Published",
+      "withdrawn": "Withdrawn"
+    },
+    "new": "New announcement",
+    "editTitle": "Edit draft",
+    "editorHelp": "Save a draft to finish later. Once published it cannot be edited, only withdrawn.",
+    "titleField": "Title",
+    "body": "Message",
+    "expiresOn": "Show until",
+    "expiresHint": "Hidden from feeds after this day.",
+    "saveDraft": "Save draft",
+    "draftSaved": "Draft saved.",
+    "publish": "Publish",
+    "published": "Announcement published.",
+    "withdraw": "Withdraw",
+    "withdrawn": "Announcement withdrawn.",
+    "noun": "announcement",
+    "noneYet": "No announcements yet.",
+    "reads_one": "{{count}} read",
+    "reads_other": "{{count}} reads"
   }
 }

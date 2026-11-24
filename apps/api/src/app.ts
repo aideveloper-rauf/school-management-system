@@ -15,6 +15,8 @@ import { auditRoutes } from './modules/audit/routes.js';
 import { userRoutes } from './modules/users/routes.js';
 import { peopleRoutes } from './modules/people/routes.js';
 import { attendanceRoutes } from './modules/attendance/routes.js';
+import { timetableRoutes } from './modules/timetable/routes.js';
+import { announcementRoutes } from './modules/announcements/routes.js';
 
 export interface BuildAppOptions {
   config: AppConfig;
@@ -65,6 +67,8 @@ export async function buildApp({ config, db, logger = true }: BuildAppOptions): 
       await v1.register(userRoutes, { db });
       await v1.register(peopleRoutes, { db });
       await v1.register(attendanceRoutes, { db });
+      await v1.register(timetableRoutes, { db });
+      await v1.register(announcementRoutes, { db });
     },
     { prefix: API_PREFIX },
   );

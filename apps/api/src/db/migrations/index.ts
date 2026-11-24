@@ -5,6 +5,7 @@ import * as m0003 from './0003_foundation_foreign_keys.js';
 import * as m0004 from './0004_user_lifecycle.js';
 import * as m0005 from './0005_people.js';
 import * as m0006 from './0006_attendance.js';
+import * as m0007 from './0007_timetable_announcements.js';
 
 /**
  * Static registry so migrations work identically from tsx and compiled dist/.
@@ -17,6 +18,7 @@ const migrations: Record<string, Migration> = {
   '0004_user_lifecycle': m0004,
   '0005_people': m0005,
   '0006_attendance': m0006,
+  '0007_timetable_announcements': m0007,
 };
 
 export const migrationProvider: MigrationProvider = {

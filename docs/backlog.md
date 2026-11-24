@@ -35,8 +35,8 @@ Detailed tasks, IDs, dependencies and exit gates for each item: [`roadmap.md`](r
 - [x] Guardian profiles and verified `student_guardians` links; scope helpers (`assertCanAccessStudent`)
 - [x] Teacher class/subject assignments
 - [x] Attendance sessions/records, correction workflow with reasons, guardian notification jobs (per-day registers, email; per-period and SMS later)
-- [ ] Timetable with teacher/class/room collision checks
-- [ ] Announcements with audience targeting
+- [x] Timetable with teacher/class/room collision checks
+- [x] Announcements with audience targeting (read receipts)
 
 ## Phase 3 — Learning & exams
 - [ ] Tutorials/assignments/submissions with private file storage and authorized downloads

@@ -39,13 +39,13 @@ export const NAV_GROUPS: NavGroup[] = [
     labelKey: 'navGroups.overview',
     items: [
       { path: '/', labelKey: 'nav.dashboard', icon: LayoutDashboard, anyOf: [] },
-      { path: '/announcements', labelKey: 'nav.announcements', icon: Megaphone, anyOf: ['announcements.read'], soon: true },
+      { path: '/announcements', labelKey: 'nav.announcements', icon: Megaphone, anyOf: ['announcements.read'] },
     ],
   },
   {
     labelKey: 'navGroups.teaching',
     items: [
-      { path: '/timetable', labelKey: 'nav.timetable', icon: CalendarClock, anyOf: ['timetable.read'], soon: true },
+      { path: '/timetable', labelKey: 'nav.timetable', icon: CalendarClock, anyOf: ['timetable.read'] },
       {
         path: '/attendance',
         labelKey: 'nav.attendance',
