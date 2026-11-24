@@ -59,7 +59,7 @@ export default function TimetablePage() {
   const key = view === 'class' ? 'classSectionId' : view === 'teacher' ? 'staffId' : 'roomId';
   const path = view === 'mine' ? '/me/timetable' : target ? `/timetable${query({ [key]: target, academicYearId: yearId })}` : null;
   const data = useResource<{ items: Entry[]; kind?: string }>(path);
-  const entries = data.data?.items ?? [];
+  const entries = useMemo(() => data.data?.items ?? [], [data.data]);
   const days = useMemo(() => {
     const base = [1, 2, 3, 4, 5];
     const used = new Set(entries.map((e) => e.dayOfWeek));

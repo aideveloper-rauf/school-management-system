@@ -61,6 +61,7 @@ export const AUDIT_CATEGORIES = {
   records: ['student.', 'staff.', 'guardian.', 'enrollment.', 'teacher_assignment.', 'import.'],
   attendance: ['attendance.'],
   timetable: ['timetable.'],
+  learning: ['learning.'],
   communication: ['announcement.'],
   academic: ['academic_year.', 'term.', 'grade.', 'subject.', 'room.', 'class_section.', 'period.', 'calendar_event.'],
   settings: ['school.'],

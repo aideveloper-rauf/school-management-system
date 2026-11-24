@@ -143,7 +143,7 @@ removes expired sessions and old login attempts.
 - `HashRouter` is used so the static build works on any host; switch to `BrowserRouter` once the `.htaccess`
   rewrite is confirmed on the target plan.
 
-## 5. Current schema (migrations 0001–0007)
+## 5. Current schema (migrations 0001–0008)
 
 - **0001 foundation:** `schools`, `users`, `user_roles`, `sessions`, `login_attempts`, `audit_events`, `academic_years`,
   `terms`, `jobs`, `app_meta`, plus Kysely's `schema_migrations` tables.
@@ -155,6 +155,7 @@ removes expired sessions and old login attempts.
   `student_guardians`, `teacher_assignments`, `class_sections.class_teacher_id`, `import_jobs`.
 - **0006 attendance:** `attendance_sessions` (unique per section + date), `attendance_records`, `attendance_corrections`.
 - **0007:** `timetable_entries` (clash keys), `announcements`, `announcement_reads`.
+- **0008 learning:** `stored_files`, `learning_items`, `learning_item_files`, `submissions`, `submission_files`.
 - **0003:** adds 0001's foreign keys. 0001 declared them inline (`.references()`), which **MySQL silently ignores**
   (MariaDB honours them, so 0003 skips existing keys). Always use `.addForeignKeyConstraint()`; ESLint rejects
   `.references()` in migrations and a schema test fails if any `*_id`/`*_by` column lacks a foreign key.
@@ -272,6 +273,24 @@ with `notify_email` and an email address. Per-period registers and SMS are not b
   `GET /announcements/manage`, `POST /announcements`, `PUT /announcements/:id` (drafts only), `/publish`, `/withdraw`,
   `DELETE` (drafts only). Audiences: school, role, grade, class, guardians of a class. Grade/class audiences reach students
   enrolled now, their **verified** guardians, and staff who teach there. Published text is never rewritten — withdraw instead.
+
+### Learning and files (`modules/learning/`, `lib/files.ts`, migration 0008)
+
+- **Files** — `POST /files?name=` (raw `application/octet-stream`, 10 MB), `GET /files/:id`. Stored under
+  `STORAGE_DIR/files/xx/<random>.bin` (outside the web root, included in backups). Type is sniffed from the bytes against
+  an allow-list (PDF, PNG, JPEG, WebP, OOXML/ODF by extension inside ZIP, UTF-8 text); HTML/SVG/executables are refused.
+  Downloads send `attachment`, `nosniff`, `no-store`. A file is readable only via what it is attached to (or by its uploader
+  while unattached); downloads of student work are audited. Cron housekeeping deletes files unattached for a day.
+- **Items** — `GET/POST /learning-items`, `GET/PUT/DELETE /learning-items/:id`, `POST /learning-items/:id/publish`. Kinds:
+  `resource`, `assignment` (due date, late policy, max score). Manage: `learning.manage.all` (coordinator) or
+  `learning.manage.scoped` with a teacher assignment for that class + subject. Read: those, `learning.read.all`
+  (principal), class teachers, and with `learning.read.own` students enrolled now / verified guardians (published only).
+- **Submissions** — `POST /learning-items/:id/submission` (the student; resubmit replaces until returned; late flag; refused
+  after the due date when late work is off), `GET /learning-items/:id/submissions` (roster view), `POST /submissions/:id/return`
+  (feedback + score ≤ max). `GET /me/children` lists a guardian's verified children (or the student themself).
+- New permissions (roles.ts): `learning.manage.scoped` (teacher), `learning.manage.all` + `learning.read.all`
+  (academic coordinator), `learning.read.all` (principal), `learning.read.own` (student, guardian) — part of the
+  permission-matrix sign-off (P0).
 
 ## 6. Known gaps (tracked in backlog.md)
 

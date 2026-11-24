@@ -74,3 +74,43 @@ export const announcementListQuerySchema = paginationQuerySchema.extend({
   /** Publisher view: drafts, published, withdrawn. */
   state: z.enum(['draft', 'published', 'withdrawn']).optional(),
 });
+
+// Learning (roadmap L-2, L-3) ------------------------------------------------
+const score = z.number().min(0).max(1000).multipleOf(0.01);
+export const learningItemFields = z.object({
+  kind: z.enum(['resource', 'assignment']),
+  classSectionId: idSchema,
+  subjectId: idSchema,
+  title: z.string().trim().min(1).max(191),
+  instructions: z.string().trim().max(10_000).nullable().default(null),
+  /** ISO date-time; assignments only. */
+  dueAt: z.iso.datetime({ offset: true }).nullable().default(null),
+  allowLate: z.boolean().default(true),
+  maxScore: score.nullable().default(null),
+  fileIds: z.array(idSchema).max(10).default([]),
+});
+export const createLearningItemSchema = learningItemFields
+  .extend({ publish: z.boolean().default(false) })
+  .refine((v) => v.kind === 'assignment' || (v.dueAt === null && v.maxScore === null), {
+    message: 'Only assignments have a due date or score',
+    path: ['dueAt'],
+  });
+/** Full replacement of the editable fields (class and subject stay fixed). */
+export const updateLearningItemSchema = learningItemFields.omit({ kind: true, classSectionId: true, subjectId: true });
+export const learningListQuerySchema = paginationQuerySchema.extend({
+  classSectionId: z.coerce.number().int().positive().optional(),
+  subjectId: z.coerce.number().int().positive().optional(),
+  kind: z.enum(['resource', 'assignment']).optional(),
+  /** Guardian view: one linked child. */
+  studentId: z.coerce.number().int().positive().optional(),
+});
+export const submitWorkSchema = z
+  .object({
+    textAnswer: z.string().trim().max(20_000).nullable().default(null),
+    fileIds: z.array(idSchema).max(5).default([]),
+  })
+  .refine((v) => v.textAnswer || v.fileIds.length > 0, { message: 'Add an answer or a file', path: ['textAnswer'] });
+export const returnSubmissionSchema = z.object({
+  feedback: z.string().trim().max(5_000).nullable().default(null),
+  score: score.nullable().default(null),
+});

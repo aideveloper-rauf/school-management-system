@@ -34,7 +34,8 @@
     "status": "System status",
     "staff": "Staff",
     "guardians": "Guardians",
-    "imports": "Import data"
+    "imports": "Import data",
+    "learning": "Learning"
   },
   "dashboard": {
     "welcome": "Welcome, {{name}}",
@@ -453,7 +454,12 @@
     "timetableRoomBusy": "That room is in use in that period.",
     "timetableTeacherNotAssigned": "Assign this teacher to the class and subject first (Staff → Teaching).",
     "announcementPublished": "Published announcements cannot be changed or deleted. Withdraw it and publish a new one.",
-    "announcementNotLive": "This announcement is not currently published."
+    "announcementNotLive": "This announcement is not currently published.",
+    "fileType": "This type of file is not accepted. Use PDF, images, Word/Excel/PowerPoint, OpenDocument or plain text.",
+    "alreadyPublished": "This is already published.",
+    "hasSubmissions": "Students have handed in work for this, so it cannot be deleted.",
+    "pastDue": "The due date has passed and late work is not accepted.",
+    "submissionReturned": "Your teacher has already returned this work."
   },
   "common": {
     "loading": "Loading…",
@@ -554,7 +560,8 @@
       "records": "Student & staff records",
       "attendance": "Attendance",
       "timetable": "Timetable",
-      "communication": "Announcements"
+      "communication": "Announcements",
+      "learning": "Learning"
     },
     "entities": {
       "user": "User",
@@ -573,7 +580,8 @@
       "guardian": "Guardian",
       "teacher_assignment": "Teaching assignment",
       "import_job": "Import",
-      "announcement": "Announcement"
+      "announcement": "Announcement",
+      "learning_item": "Learning item"
     },
     "metaKeys": {
       "fields": "Changed fields",
@@ -616,7 +624,12 @@
       "entryId": "Lesson id",
       "dayOfWeek": "Day",
       "periodId": "Period id",
-      "audience": "Audience"
+      "audience": "Audience",
+      "submissionId": "Submission id",
+      "itemId": "Item id",
+      "resubmitted": "Handed in again",
+      "scored": "Scored",
+      "fileId": "File id"
     },
     "fieldNames": {
       "displayName": "Full name",
@@ -726,7 +739,14 @@
       "announcement_updated": "Announcement draft changed",
       "announcement_published": "Announcement published",
       "announcement_withdrawn": "Announcement withdrawn",
-      "announcement_deleted": "Announcement draft deleted"
+      "announcement_deleted": "Announcement draft deleted",
+      "learning_item_created": "Learning draft created",
+      "learning_item_published": "Learning item published",
+      "learning_item_updated": "Learning item changed",
+      "learning_item_deleted": "Learning item deleted",
+      "learning_work_submitted": "Work handed in",
+      "learning_work_returned": "Work returned",
+      "learning_submission_file_downloaded": "Student work downloaded"
     }
   },
   "status": {
@@ -1209,5 +1229,64 @@
     "noneYet": "No announcements yet.",
     "reads_one": "{{count}} read",
     "reads_other": "{{count}} reads"
+  },
+  "portal": {
+    "child": "Child"
+  },
+  "learning": {
+    "title": "Learning",
+    "intro": "Notes, worksheets and assignments from your teachers.",
+    "introStaff": "Share notes and set assignments for the classes and subjects you teach.",
+    "new": "New material or assignment",
+    "edit": "Edit",
+    "item": "item",
+    "kind": "Type",
+    "kinds": {
+      "resource": "Material",
+      "assignment": "Assignment"
+    },
+    "allKinds": "All types",
+    "classSubject": "Class and subject",
+    "allMyClasses": "All my classes",
+    "noAssignments": "You are not assigned to teach any class this year yet.",
+    "empty": "Nothing here yet.",
+    "draft": "Draft",
+    "due": "due {{when}}",
+    "overdue": "Overdue",
+    "outOf": "out of {{max}}",
+    "noLate": "no late work",
+    "instructions": "Instructions",
+    "dueAt": "Due",
+    "maxScore": "Maximum score",
+    "allowLate": "Accept late work",
+    "allowLateHint": "Late work is marked as late.",
+    "attach": "Attach files",
+    "fileHint": "PDF, images, Office or OpenDocument files, plain text. Up to 10 MB each.",
+    "tooManyFiles": "At most {{max}} files.",
+    "fileTooLarge": "A file is larger than 10 MB.",
+    "removeFile": "Remove {{name}}",
+    "publishedMsg": "Published to the class.",
+    "yourWork": "Your work",
+    "answer": "Answer",
+    "submit": "Hand in",
+    "resubmit": "Hand in again",
+    "resubmitNote": "Handing in again replaces your earlier work.",
+    "submitted": "Work handed in.",
+    "submittedAt": "Handed in {{when}}",
+    "late": "Late",
+    "closed": "The due date has passed and late work is not accepted.",
+    "returned": "Returned by your teacher",
+    "scored": "Score {{score}} / {{max}}",
+    "subStatus": {
+      "submitted": "Handed in",
+      "returned": "Returned"
+    },
+    "submissions": "Handed in: {{done}} of {{total}}",
+    "notSubmitted": "Not handed in",
+    "feedback": "Feedback",
+    "scoreOutOf": "Score (out of {{max}})",
+    "return": "Return to student",
+    "updateReturn": "Update",
+    "returnedMsg": "Work returned."
   }
 }

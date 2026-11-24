@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 import {
   Activity,
   Award,
+  BookOpen,
   BookOpenCheck,
   Briefcase,
   CalendarClock,
@@ -51,6 +52,12 @@ export const NAV_GROUPS: NavGroup[] = [
         labelKey: 'nav.attendance',
         icon: ClipboardCheck,
         anyOf: ['attendance.record.scoped', 'attendance.correct', 'students.read.all'],
+      },
+      {
+        path: '/learning',
+        labelKey: 'nav.learning',
+        icon: BookOpen,
+        anyOf: ['learning.manage.scoped', 'learning.manage.all', 'learning.read.all', 'learning.read.own'],
       },
       {
         path: '/students',

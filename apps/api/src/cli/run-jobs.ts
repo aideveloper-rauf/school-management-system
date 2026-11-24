@@ -14,7 +14,7 @@ const db = createDb(config);
 try {
   await releaseStaleJobs(db);
   const n = await drainQueue(db, buildJobHandlers({ config, mailer: createMailer(config) }));
-  await housekeeping(db);
+  await housekeeping(db, config.STORAGE_DIR);
   console.log(`${new Date().toISOString()} processed=${n}`);
 } finally {
   await db.destroy();

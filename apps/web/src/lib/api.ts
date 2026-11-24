@@ -15,6 +15,8 @@ let csrfToken: string | null = null;
 export const setCsrfToken = (t: string | null) => {
   csrfToken = t;
 };
+/** CSRF header for requests that do not go through api() (e.g. raw file uploads). */
+export const csrfHeader = (): Record<string, string> => (csrfToken ? { [CSRF_HEADER]: csrfToken } : {});
 
 /** Same-origin JSON client. Cookies carry the session; unsafe methods send the CSRF header. */
 export async function api<T>(path: string, init: { method?: string; body?: unknown; signal?: AbortSignal } = {}): Promise<T> {

@@ -104,6 +104,45 @@ export const assignmentRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { db
     };
   });
 
+  /**
+   * The signed-in guardian's verified children (or the student themself), with their current class.
+   * Used by family screens to pick a child. Pending or rejected links are not listed.
+   */
+  app.get('/me/children', { preHandler: requirePermission('self.profile.read') }, async (req) => {
+    const userId = req.auth!.user.id;
+    const rows = await db
+      .selectFrom('student_profiles as s')
+      .leftJoin('enrollments as e', (j) => j.onRef('e.student_id', '=', 's.id').on('e.ends_on', 'is', null))
+      .leftJoin('class_sections as c', 'c.id', 'e.class_section_id')
+      .leftJoin('grades as g', 'g.id', 'c.grade_id')
+      .select(['s.id', 's.full_name', 's.admission_no', 's.status', 'c.id as class_id', 'c.name as class_name', 'g.name as grade_name'])
+      .where((eb) =>
+        eb.or([
+          eb('s.user_id', '=', userId),
+          eb.exists(
+            eb
+              .selectFrom('student_guardians as sg')
+              .innerJoin('guardian_profiles as gp', 'gp.id', 'sg.guardian_id')
+              .select('sg.student_id')
+              .whereRef('sg.student_id', '=', 's.id')
+              .where('sg.verification_status', '=', 'verified')
+              .where('gp.user_id', '=', userId),
+          ),
+        ]),
+      )
+      .orderBy('s.full_name')
+      .execute();
+    return {
+      items: rows.map((r) => ({
+        id: r.id,
+        fullName: r.full_name,
+        admissionNo: r.admission_no,
+        status: r.status,
+        currentClass: r.class_id === null ? null : { id: r.class_id, name: r.class_name, gradeName: r.grade_name },
+      })),
+    };
+  });
+
   app.post('/teacher-assignments', { preHandler: canManage }, async (req, reply) => {
     const input = createTeacherAssignmentSchema.parse(req.body);
     const id = await db.transaction().execute(async (trx) => {

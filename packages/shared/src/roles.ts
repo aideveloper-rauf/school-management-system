@@ -34,6 +34,11 @@ export const PERMISSIONS = [
   'attendance.correct',
   'timetable.read',
   'timetable.manage',
+  // Learning (materials, assignments, submissions)
+  'learning.manage.scoped',
+  'learning.manage.all',
+  'learning.read.all',
+  'learning.read.own',
   // Assessment
   'marks.enter.scoped',
   'marks.moderate',
@@ -78,6 +83,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'academic.structure.read',
     'students.read.all',
     'staff.read',
+    'learning.read.all',
     'attendance.correct',
     'marks.moderate',
     'results.approve',
@@ -91,13 +97,22 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'students.read.scoped',
     'staff.read',
     'timetable.manage',
+    'learning.manage.all',
+    'learning.read.all',
     'marks.moderate',
     'announcements.publish',
   ],
-  teacher: [...READ_BASICS, 'academic.structure.read', 'students.read.scoped', 'attendance.record.scoped', 'marks.enter.scoped'],
+  teacher: [
+    ...READ_BASICS,
+    'academic.structure.read',
+    'students.read.scoped',
+    'attendance.record.scoped',
+    'learning.manage.scoped',
+    'marks.enter.scoped',
+  ],
   registrar: [...READ_BASICS, 'academic.structure.read', 'students.read.all', 'students.manage', 'guardians.link.manage'],
-  student: [...READ_BASICS, 'results.read.own'],
-  guardian: [...READ_BASICS, 'results.read.own'],
+  student: [...READ_BASICS, 'learning.read.own', 'results.read.own'],
+  guardian: [...READ_BASICS, 'learning.read.own', 'results.read.own'],
 };
 
 export function isRole(value: unknown): value is Role {

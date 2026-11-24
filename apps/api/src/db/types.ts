@@ -382,7 +382,62 @@ export interface AnnouncementReadTable {
   read_at: CreatedAt;
 }
 
+// Learning (migration 0008) --------------------------------------------------
+export interface StoredFileTable {
+  id: Generated<number>;
+  /** Relative path under STORAGE_DIR/files; never derived from user input. */
+  storage_key: string;
+  sha256: string;
+  original_name: string;
+  mime_type: string;
+  size_bytes: number;
+  uploaded_by: number | null;
+  created_at: CreatedAt;
+}
+export interface LearningItemTable {
+  id: Generated<number>;
+  kind: 'resource' | 'assignment';
+  class_section_id: number;
+  subject_id: number;
+  title: string;
+  instructions: string | null;
+  due_at: Date | null;
+  allow_late: Generated<number>;
+  /** DECIMAL comes back as a string from mysql2. */
+  max_score: string | null;
+  published_at: Date | null;
+  created_by: number | null;
+  created_at: CreatedAt;
+  updated_at: UpdatedAt;
+}
+export interface LearningItemFileTable {
+  item_id: number;
+  file_id: number;
+}
+export interface SubmissionTable {
+  id: Generated<number>;
+  item_id: number;
+  student_id: number;
+  text_answer: string | null;
+  submitted_at: UpdatedAt;
+  is_late: Generated<number>;
+  status: Generated<'submitted' | 'returned'>;
+  feedback: string | null;
+  score: string | null;
+  returned_by: number | null;
+  returned_at: Date | null;
+}
+export interface SubmissionFileTable {
+  submission_id: number;
+  file_id: number;
+}
+
 export interface Database {
+  stored_files: StoredFileTable;
+  learning_items: LearningItemTable;
+  learning_item_files: LearningItemFileTable;
+  submissions: SubmissionTable;
+  submission_files: SubmissionFileTable;
   timetable_entries: TimetableEntryTable;
   announcements: AnnouncementTable;
   announcement_reads: AnnouncementReadTable;
