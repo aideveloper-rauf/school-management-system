@@ -2,7 +2,7 @@
   "name": "school-management-system",
   "private": true,
   "version": "0.1.0",
-  "description": "Sri Lanka School Management System — per-school installable application (web + API).",
+  "description": "Sri Lanka School Management System \u2014 per-school installable application (web + API).",
   "workspaces": [
     "packages/*",
     "apps/*"
@@ -24,6 +24,7 @@
     "backup": "npm run backup -w @sms/api",
     "backup:verify": "npm run backup:verify -w @sms/api --",
     "restore": "npm run restore -w @sms/api --",
+    "export": "npm run export -w @sms/api --",
     "release": "tsx scripts/release/build.ts",
     "release:keygen": "tsx scripts/release/keygen.ts"
   },

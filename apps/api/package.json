@@ -18,7 +18,9 @@
     "backup:verify": "tsx --env-file-if-exists=.env src/cli/verify-backup.ts",
     "restore": "tsx --env-file-if-exists=.env src/cli/restore.ts",
     "verify-release": "tsx src/cli/verify-release.ts",
-    "upgrade-check": "tsx --env-file-if-exists=.env src/cli/upgrade-check.ts"
+    "upgrade-check": "tsx --env-file-if-exists=.env src/cli/upgrade-check.ts",
+    "export": "tsx --env-file-if-exists=.env src/cli/export.ts",
+    "maintenance": "tsx --env-file-if-exists=.env src/cli/maintenance.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.0",

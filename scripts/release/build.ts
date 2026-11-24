@@ -61,7 +61,7 @@ await rm(staging, { recursive: true, force: true });
 await mkdir(path.join(pkgDir, 'api'), { recursive: true });
 
 // 4. API bundle.
-const cli = ['migrate', 'create-admin', 'run-jobs', 'backup', 'verify-backup', 'restore', 'verify-release', 'upgrade-check'];
+const cli = ['migrate', 'create-admin', 'run-jobs', 'backup', 'verify-backup', 'restore', 'export', 'maintenance', 'verify-release', 'upgrade-check'];
 await build({
   entryPoints: {
     server: path.join(root, 'apps/api/src/server.ts'),

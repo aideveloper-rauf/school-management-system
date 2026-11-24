@@ -25,8 +25,8 @@ Detailed tasks, IDs, dependencies and exit gates for each item: [`roadmap.md`](r
 - [x] Year rollover helper (roadmap A-5; class sections only — student promotion comes with enrolment)
 - [x] School settings UI; academic structure UI (A-6, A-7)
 - [x] Audit log viewer UI; ops status UI (O-1, O-2)
-- [x] Backup/export CLI (DB dump + storage archive, encrypted) and restore runbook; record last backup in app_meta (O-3, O-4; full school data export for offboarding O-5 still open)
-- [x] Release packaging: versioned artifact + checksum + signature; manual install/upgrade guide (O-6; upgrade-check preflight. Still open: generate the real signing key; maintenance mode and automated in-app upgrade O-7/O-8)
+- [x] Backup/export CLI (DB dump + storage archive, encrypted) and restore runbook; record last backup in app_meta (O-3, O-4; O-5 full data export: `npm run export -- --out <dir>`)
+- [x] Release packaging: versioned artifact + checksum + signature; manual install/upgrade guide (O-6; upgrade-check preflight. Still open: generate the real signing key; maintenance mode O-8 done: `maintenance on|off`; automated in-app upgrade O-7 open)
 - [ ] Validate deployment on the target cPanel plan; update deployment.md with measured limits
 - [ ] Supply Sinhala and Tamil translations (owner: pilot school / translator)
 

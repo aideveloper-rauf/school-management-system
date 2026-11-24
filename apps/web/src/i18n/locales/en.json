@@ -485,7 +485,8 @@
     "alreadyRevoked": "This certificate is already revoked.",
     "aiOff": "AI drafting is not switched on for this school.",
     "aiPersonalData": "Remove names, phone numbers, emails or ID numbers. Only describe the topic or learning outcome.",
-    "aiUnavailable": "The AI service could not be reached. Try again later; nothing else is affected."
+    "aiUnavailable": "The AI service could not be reached. Try again later; nothing else is affected.",
+    "maintenance": "The school system is being updated. Please try again shortly."
   },
   "common": {
     "loading": "Loading…",

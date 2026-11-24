@@ -24,6 +24,7 @@ import { certificateRoutes } from './modules/certificates/routes.js';
 import { analyticsRoutes } from './modules/analytics/routes.js';
 import { aiRoutes } from './modules/ai/routes.js';
 import { createAiProvider, type AiProvider } from './lib/ai.js';
+import { maintenanceGuard } from './lib/maintenance.js';
 
 export interface BuildAppOptions {
   config: AppConfig;
@@ -66,6 +67,8 @@ export async function buildApp({ config, db, logger = true, ai }: BuildAppOption
     async (v1) => {
       // Fail fast at startup if any API route forgets to declare its authorization.
       v1.addHook('onRoute', assertRouteDeclaresAuth);
+      // Maintenance mode (upgrades): 503 for everything but health, sign-in and admin ops.
+      v1.addHook('preHandler', maintenanceGuard(db, API_PREFIX));
       await v1.register(healthRoutes, { db, config });
       await v1.register(authRoutes, { db, config });
       await v1.register(schoolRoutes, { db });
