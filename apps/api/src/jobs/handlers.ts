@@ -1,5 +1,7 @@
 import type { AppConfig } from '../config/env.js';
 import type { Mailer } from '../mail/mailer.js';
+import type { SmsSender } from '../mail/sms.js';
+import { ANNOUNCEMENT_NOTIFY_JOB, announcementNotifyHandler } from '../modules/announcements/notify.js';
 import { SEND_USER_TOKEN_JOB, sendUserTokenHandler } from '../modules/users/tokens.js';
 import { ABSENCE_NOTICE_JOB, absenceNoticeHandler } from '../modules/attendance/notify.js';
 import type { JobHandler } from './queue.js';
@@ -8,9 +10,10 @@ import type { JobHandler } from './queue.js';
  * Job handler registry. Handlers must be idempotent (a job can run more than once after a crash)
  * and must not put personal data or tokens in thrown error messages (they are stored in jobs.last_error).
  */
-export function buildJobHandlers(deps: { config: AppConfig; mailer: Mailer }): Record<string, JobHandler> {
+export function buildJobHandlers(deps: { config: AppConfig; mailer: Mailer; sms?: SmsSender }): Record<string, JobHandler> {
   return {
     [SEND_USER_TOKEN_JOB]: sendUserTokenHandler(deps),
     [ABSENCE_NOTICE_JOB]: absenceNoticeHandler(deps),
+    [ANNOUNCEMENT_NOTIFY_JOB]: announcementNotifyHandler(deps),
   };
 }

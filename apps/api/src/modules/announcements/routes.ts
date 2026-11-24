@@ -9,6 +9,7 @@ import { AppError, invalid, notFound } from '../../lib/errors.js';
 import { requirePermission } from '../../plugins/auth.js';
 import { routeId, todayIn } from '../people/common.js';
 import { taughtSectionIds } from '../people/scope.js';
+import { queueAnnouncementNotify } from './notify.js';
 
 /**
  * Announcements with audience targeting (roadmap C-12).
@@ -132,6 +133,7 @@ export const announcementRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { 
         'a.published_at',
         'a.expires_on',
         'a.withdrawn_at',
+        'a.notify_guardians',
         'a.created_at',
         'u.display_name as author',
         'g.name as grade_name',
@@ -151,6 +153,7 @@ export const announcementRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { 
     publishedAt: r.published_at ? new Date(r.published_at).toISOString() : null,
     expiresOn: r.expires_on,
     withdrawnAt: r.withdrawn_at ? new Date(r.withdrawn_at).toISOString() : null,
+    notifyGuardians: Boolean(r.notify_guardians),
     author: r.author,
     createdAt: new Date(r.created_at).toISOString(),
   });
@@ -273,6 +276,7 @@ export const announcementRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { 
           body: input.body,
           ...audienceColumns(input),
           expires_on: input.expiresOn,
+          notify_guardians: input.notifyGuardians ? 1 : 0,
           published_at: input.publish ? sql<Date>`CURRENT_TIMESTAMP` : null,
           created_by: req.auth!.user.id,
         })
@@ -284,6 +288,7 @@ export const announcementRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { 
         entityId: newId,
         metadata: { audience: input.audience },
       });
+      if (input.publish && input.notifyGuardians) await queueAnnouncementNotify(trx, newId);
       return newId;
     });
     return reply.status(201).send({ id });
@@ -300,7 +305,13 @@ export const announcementRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { 
       await assertAudienceRefs(trx, input);
       await trx
         .updateTable('announcements')
-        .set({ title: input.title, body: input.body, ...audienceColumns(input), expires_on: input.expiresOn })
+        .set({
+          title: input.title,
+          body: input.body,
+          ...audienceColumns(input),
+          expires_on: input.expiresOn,
+          notify_guardians: input.notifyGuardians ? 1 : 0,
+        })
         .where('id', '=', id)
         .execute();
       await recordAudit(trx, req, { action: 'announcement.updated', entityType: 'announcement', entityId: id });
@@ -313,7 +324,7 @@ export const announcementRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { 
     await db.transaction().execute(async (trx) => {
       const cur = await trx
         .selectFrom('announcements')
-        .select(['published_at', 'audience'])
+        .select(['published_at', 'audience', 'notify_guardians'])
         .where('id', '=', id)
         .forUpdate()
         .executeTakeFirst();
@@ -324,6 +335,7 @@ export const announcementRoutes: FastifyPluginAsync<{ db: Db }> = async (app, { 
         .set({ published_at: sql<Date>`CURRENT_TIMESTAMP` })
         .where('id', '=', id)
         .execute();
+      if (cur.notify_guardians) await queueAnnouncementNotify(trx, id);
       await recordAudit(trx, req, {
         action: 'announcement.published',
         entityType: 'announcement',

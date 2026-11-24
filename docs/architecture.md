@@ -143,7 +143,7 @@ removes expired sessions and old login attempts.
 - `HashRouter` is used so the static build works on any host; switch to `BrowserRouter` once the `.htaccess`
   rewrite is confirmed on the target plan.
 
-## 5. Current schema (migrations 0001–0011)
+## 5. Current schema (migrations 0001–0012)
 
 - **0001 foundation:** `schools`, `users`, `user_roles`, `sessions`, `login_attempts`, `audit_events`, `academic_years`,
   `terms`, `jobs`, `app_meta`, plus Kysely's `schema_migrations` tables.
@@ -160,6 +160,7 @@ removes expired sessions and old login attempts.
 - **0010 exams:** `grading_scales`, `grading_scale_versions`, `exam_series`, `exam_components`, `mark_sheets`, `marks`,
   `mark_changes`, `result_releases`.
 - **0011 certificates:** `certificate_templates`, `certificates`.
+- **0012 notifications:** `notification_deliveries`, `announcements.notify_guardians`.
 - **0003:** adds 0001's foreign keys. 0001 declared them inline (`.references()`), which **MySQL silently ignores**
   (MariaDB honours them, so 0003 skips existing keys). Always use `.addForeignKeyConstraint()`; ESLint rejects
   `.references()` in migrations and a schema test fails if any `*_id`/`*_by` column lacks a foreign key.
@@ -341,6 +342,17 @@ The default calculation rules are documented in `calculate.ts` and must be confi
   issue/revoke date, school — nothing else. Web: `/#/verify?serial=`. Printing: `/#/print/certificate/:id` (full page; the
   browser's "Save as PDF" gives a PDF). No server-side PDF generation yet.
 - Families: `GET /me/certificates?studentId`, `GET /certificates/:id` (holder or verified guardian).
+
+### Notifications (`mail/notify.ts`, `mail/sms.ts`, migration 0012)
+
+- `deliver()` sends one email or SMS and logs it in `notification_deliveries` with a **masked** address, purpose and
+  status (`sent`/`failed`/`skipped`); message text is never stored. Phone numbers are normalised to E.164 (+94…).
+- SMS adapters: `none` (default), `file` (dev outbox), `http` (generic gateway; verify against the provider). Email and SMS
+  respect each guardian's `notify_email` / `notify_sms` and go only to **verified** guardians.
+- Absence notices use both channels. Announcements with `notifyGuardians` queue `announcement.notify` on publish; the job
+  skips guardians already sent that announcement on a channel, so retries never double-send.
+- `GET /ops/deliveries` (ops.status.read) and `deliveryFailures24h` / `smsTransport` on `GET /ops/status`.
+- Message texts are English; si/ta fall back to English until translated.
 
 ## 6. Known gaps (tracked in backlog.md)
 

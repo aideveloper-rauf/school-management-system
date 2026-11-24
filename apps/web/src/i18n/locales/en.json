@@ -862,7 +862,30 @@
       "mailOff": "Emails are not being sent",
       "mailOffFix": "Set the mail server settings (SMTP) so invitations and password resets reach people.",
       "setup": "School setup is not complete",
-      "setupFix": "Run the first-time setup to create the school and its administrator."
+      "setupFix": "Run the first-time setup to create the school and its administrator.",
+      "deliveryFailed_one": "{{count}} email/SMS failed in the last day",
+      "deliveryFailed_other": "{{count}} emails/SMS failed in the last day",
+      "deliveryFailedFix": "Check the delivery list below. Wrong addresses need correcting on the guardian record; gateway errors need the email or SMS settings checked."
+    },
+    "sms": "SMS",
+    "smsTransports": {
+      "none": "Off",
+      "file": "Test mode (saved to the server, not sent)",
+      "http": "SMS gateway"
+    },
+    "deliveries": "Email and SMS deliveries",
+    "deliveriesHelp": "Recent notices sent to guardians and users. Addresses are partly hidden; message text is not kept.",
+    "deliveryStatus": "Delivery status",
+    "allDeliveries": "All",
+    "deliveryStatuses": {
+      "sent": "Sent",
+      "failed": "Failed",
+      "skipped": "Skipped"
+    },
+    "noDeliveries": "Nothing sent yet.",
+    "purposes": {
+      "absence_notice": "Absence notice",
+      "announcement": "Announcement"
     }
   },
   "students": {
@@ -1300,7 +1323,9 @@
     "noun": "announcement",
     "noneYet": "No announcements yet.",
     "reads_one": "{{count}} read",
-    "reads_other": "{{count}} reads"
+    "reads_other": "{{count}} reads",
+    "notifyGuardians": "Also send to guardians by email/SMS",
+    "notifyGuardiansHelp": "Verified guardians in this audience get it by email and/or SMS, as each has chosen."
   },
   "portal": {
     "child": "Child",

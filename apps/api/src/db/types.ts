@@ -372,6 +372,8 @@ export interface AnnouncementTable {
   published_at: Date | null;
   expires_on: string | null;
   withdrawn_at: Date | null;
+  /** Migration 0012: email/SMS verified guardians in the audience when published. */
+  notify_guardians: Generated<number>;
   created_by: number | null;
   created_at: CreatedAt;
   updated_at: UpdatedAt;
@@ -606,7 +608,23 @@ export interface CertificateTable {
   revoke_reason: string | null;
 }
 
+// Notifications (migration 0012) ----------------------------------------------
+export interface NotificationDeliveryTable {
+  id: Generated<number>;
+  channel: 'email' | 'sms';
+  purpose: string;
+  recipient_kind: 'guardian' | 'user';
+  recipient_ref: number | null;
+  to_masked: string;
+  status: 'sent' | 'failed' | 'skipped';
+  error: string | null;
+  entity_type: string | null;
+  entity_ref: string | null;
+  created_at: CreatedAt;
+}
+
 export interface Database {
+  notification_deliveries: NotificationDeliveryTable;
   certificate_templates: CertificateTemplateTable;
   certificates: CertificateTable;
   grading_scales: GradingScaleTable;

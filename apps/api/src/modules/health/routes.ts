@@ -1,10 +1,17 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { sql } from 'kysely';
+import { z } from 'zod';
+import { pageWindow, paginationQuerySchema, toPaginated } from '@sms/shared';
 import type { AppConfig } from '../../config/env.js';
 import type { Db } from '../../db/client.js';
 import { currentSchemaVersion } from '../../db/migrator.js';
 import { requirePermission } from '../../plugins/auth.js';
 import { APP_VERSION } from '../../version.js';
+
+const deliveryQuerySchema = paginationQuerySchema.extend({
+  status: z.enum(['sent', 'failed', 'skipped']).optional(),
+  channel: z.enum(['email', 'sms']).optional(),
+});
 
 /** Jobs due longer than this mean the cron job is probably not running. */
 const OVERDUE_MINUTES = 15;
@@ -20,9 +27,37 @@ export const healthRoutes: FastifyPluginAsync<{ db: Db; config: AppConfig }> = a
     }
   });
 
+  /** Notification delivery log (masked addresses; no message text). */
+  app.get('/ops/deliveries', { preHandler: requirePermission('ops.status.read') }, async (req) => {
+    const q = deliveryQuerySchema.parse(req.query);
+    let base = db.selectFrom('notification_deliveries');
+    if (q.status) base = base.where('status', '=', q.status);
+    if (q.channel) base = base.where('channel', '=', q.channel);
+    const { limit, offset } = pageWindow(q);
+    const [rows, total] = await Promise.all([
+      base.selectAll().orderBy('id', 'desc').limit(limit).offset(offset).execute(),
+      base.select(db.fn.countAll<number>().as('n')).executeTakeFirstOrThrow(),
+    ]);
+    return toPaginated(
+      rows.map((r) => ({
+        id: Number(r.id),
+        channel: r.channel,
+        purpose: r.purpose,
+        to: r.to_masked,
+        status: r.status,
+        error: r.error,
+        entityType: r.entity_type,
+        entityRef: r.entity_ref,
+        createdAt: new Date(r.created_at).toISOString(),
+      })),
+      total.n,
+      q,
+    );
+  });
+
   /** Operational status for administrators (version, schema, queue). */
   app.get('/ops/status', { preHandler: requirePermission('ops.status.read') }, async () => {
-    const [schemaVersion, queue, school, meta, overdue] = await Promise.all([
+    const [schemaVersion, queue, school, meta, overdue, failures] = await Promise.all([
       currentSchemaVersion(db),
       db
         .selectFrom('jobs')
@@ -38,6 +73,12 @@ export const healthRoutes: FastifyPluginAsync<{ db: Db; config: AppConfig }> = a
       sql<{ n: number; oldest: Date | null }>`
         SELECT COUNT(*) AS n, MIN(run_after) AS oldest FROM jobs
         WHERE status = 'pending' AND run_after < CURRENT_TIMESTAMP - INTERVAL ${sql.lit(OVERDUE_MINUTES)} MINUTE`.execute(db),
+      db
+        .selectFrom('notification_deliveries')
+        .select(db.fn.countAll<number>().as('n'))
+        .where('status', '=', 'failed')
+        .where('created_at', '>', sql<Date>`CURRENT_TIMESTAMP - INTERVAL 1 DAY`)
+        .executeTakeFirstOrThrow(),
     ]);
     const m = Object.fromEntries(meta.map((r) => [r.meta_key, r.meta_value]));
     return {
@@ -56,6 +97,8 @@ export const healthRoutes: FastifyPluginAsync<{ db: Db; config: AppConfig }> = a
         oldestDueAt: overdue.rows[0]?.oldest ? new Date(overdue.rows[0].oldest).toISOString() : null,
       },
       mailTransport: config.MAIL_TRANSPORT,
+      smsTransport: config.SMS_TRANSPORT,
+      deliveryFailures24h: Number(failures.n),
       environment: config.NODE_ENV,
       serverTime: new Date().toISOString(),
     };

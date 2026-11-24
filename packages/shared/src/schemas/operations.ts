@@ -59,6 +59,8 @@ export const createAnnouncementSchema = z
     body: z.string().trim().min(1).max(10_000),
     ...audienceFields,
     expiresOn: isoDateSchema.nullable().default(null),
+    /** Email/SMS the verified guardians in the audience when published (their own preferences apply). */
+    notifyGuardians: z.boolean().default(false),
     publish: z.boolean().default(false),
   })
   .superRefine(audienceRefine);
@@ -68,6 +70,7 @@ export const updateAnnouncementSchema = z
     body: z.string().trim().min(1).max(10_000),
     ...audienceFields,
     expiresOn: isoDateSchema.nullable().default(null),
+    notifyGuardians: z.boolean().default(false),
   })
   .superRefine(audienceRefine);
 export const announcementListQuerySchema = paginationQuerySchema.extend({

@@ -33,6 +33,11 @@ const envSchema = z.object({
   SMTP_SECURE: bool,
   SMTP_USER: z.string().default(''),
   SMTP_PASSWORD: z.string().default(''),
+  // SMS (absence notices, announcements). "none" = off; "file" writes to STORAGE_DIR/outbox/sms; "http" = gateway.
+  SMS_TRANSPORT: z.enum(['none', 'file', 'http']).default('none'),
+  SMS_HTTP_URL: z.string().default(''),
+  SMS_HTTP_TOKEN: z.string().default(''),
+  SMS_SENDER_ID: z.string().max(11).default(''),
   // Backups: encrypted with a passphrase the school keeps (never stored by the product).
   BACKUP_DIR: z.string().default('../../backups'),
   BACKUP_KEEP: z.coerce.number().int().min(1).max(365).default(14),
@@ -54,6 +59,9 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): AppConfig {
   }
   if (cfg.MAIL_TRANSPORT === 'smtp' && !cfg.SMTP_HOST) {
     throw new Error('SMTP_HOST is required when MAIL_TRANSPORT=smtp.');
+  }
+  if (cfg.SMS_TRANSPORT === 'http' && !/^https:\/\//.test(cfg.SMS_HTTP_URL)) {
+    throw new Error('SMS_HTTP_URL must be an https:// URL when SMS_TRANSPORT=http.');
   }
   return cfg;
 }

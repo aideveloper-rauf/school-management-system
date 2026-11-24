@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertCircle, CheckCircle2, DatabaseBackup, Info, ListChecks, RefreshCw, Server, TriangleAlert } from 'lucide-react';
 import { useResource } from '../lib/data';
@@ -14,6 +14,8 @@ interface OpsStatus {
   lastRestore: { at: string; from: string | null } | null;
   jobsOverdue: { count: number; oldestDueAt: string | null };
   mailTransport: 'file' | 'smtp';
+  smsTransport: 'none' | 'file' | 'http';
+  deliveryFailures24h: number;
   environment: string;
   serverTime: string;
 }
@@ -46,6 +48,12 @@ function issuesOf(s: OpsStatus, t: (k: string, o?: Record<string, unknown>) => s
     out.push({ tone: 'warn', title: t('status.issues.jobsFailed', { count: s.queue.failed }), fix: t('status.issues.jobsFailedFix') });
   if (s.mailTransport === 'file' && s.environment === 'production')
     out.push({ tone: 'warn', title: t('status.issues.mailOff'), fix: t('status.issues.mailOffFix') });
+  if (s.deliveryFailures24h > 0)
+    out.push({
+      tone: 'warn',
+      title: t('status.issues.deliveryFailed', { count: s.deliveryFailures24h }),
+      fix: t('status.issues.deliveryFailedFix'),
+    });
   if (!s.setupComplete) out.push({ tone: 'warn', title: t('status.issues.setup'), fix: t('status.issues.setupFix') });
   return out;
 }
@@ -215,6 +223,7 @@ export default function StatusPage() {
                         value:
                           s.mailTransport === 'smtp' ? t('status.emailSmtp') : <span className="text-warn">{t('status.emailFile')}</span>,
                       },
+                      { label: t('status.sms'), value: t(`status.smsTransports.${s.smsTransport}`) },
                       { label: t('status.serverTime'), value: formatDateTime(s.serverTime, i18n.language) },
                     ]}
                   />
@@ -222,8 +231,71 @@ export default function StatusPage() {
               </div>
             </Card>
           </div>
+          <Deliveries />
         </div>
       )}
     </>
+  );
+}
+
+interface DeliveryRow {
+  id: number;
+  channel: 'email' | 'sms';
+  purpose: string;
+  to: string;
+  status: 'sent' | 'failed' | 'skipped';
+  error: string | null;
+  createdAt: string;
+}
+
+/** Recent email/SMS deliveries (masked addresses; message text is never stored). */
+function Deliveries() {
+  const { t, i18n } = useTranslation();
+  const [status, setStatus] = useState('');
+  const list = useResource<{ items: DeliveryRow[]; total: number }>(`/ops/deliveries${status ? `?status=${status}` : ''}`);
+  return (
+    <Card
+      title={t('status.deliveries')}
+      description={t('status.deliveriesHelp')}
+      actions={
+        <select
+          aria-label={t('status.deliveryStatus')}
+          className="rounded-md border border-line-strong bg-surface px-2 py-1 text-sm"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+        >
+          <option value="">{t('status.allDeliveries')}</option>
+          {(['sent', 'failed', 'skipped'] as const).map((x) => (
+            <option key={x} value={x}>
+              {t(`status.deliveryStatuses.${x}`)}
+            </option>
+          ))}
+        </select>
+      }
+    >
+      {!list.data ? (
+        <Loading />
+      ) : list.data.items.length === 0 ? (
+        <p className="text-sm text-fg-faint">{t('status.noDeliveries')}</p>
+      ) : (
+        <ul className="divide-y divide-line text-sm">
+          {list.data.items.map((d) => (
+            <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+              <span>
+                <span className="font-mono text-xs">{d.to}</span>{' '}
+                <span className="text-fg-muted">· {t(`status.purposes.${d.purpose}`, { defaultValue: d.purpose })}</span>
+                {d.error && <span className="text-xs text-fg-faint"> · {d.error}</span>}
+              </span>
+              <span className="flex items-center gap-2 text-xs text-fg-muted">
+                {formatDateTime(d.createdAt, i18n.language)}
+                <Badge tone={d.status === 'sent' ? 'ok' : d.status === 'failed' ? 'danger' : 'neutral'}>
+                  {d.channel.toUpperCase()} · {t(`status.deliveryStatuses.${d.status}`)}
+                </Badge>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
   );
 }

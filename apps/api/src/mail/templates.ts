@@ -46,3 +46,24 @@ const absenceByLocale: Partial<Record<Locale, typeof absenceEn>> = { en: absence
 export function absenceEmail(locale: string, v: { school: string; guardian: string; student: string; date: string }) {
   return (absenceByLocale[locale as Locale] ?? absenceEn)(v);
 }
+
+/** Short SMS versions (one SMS segment where possible). Names and date only. */
+const smsEn = {
+  absence: (v: { school: string; student: string; date: string }) =>
+    `${v.school}: ${v.student} was absent on ${v.date}. Please contact the school if unexpected.`,
+  announcement: (v: { school: string; title: string }) => `${v.school}: ${v.title}. Read the full notice in the school app.`,
+};
+const smsByLocale: Partial<Record<Locale, typeof smsEn>> = { en: smsEn };
+export const absenceSms = (locale: string, v: { school: string; student: string; date: string }) =>
+  (smsByLocale[locale as Locale] ?? smsEn).absence(v);
+export const announcementSms = (locale: string, v: { school: string; title: string }) =>
+  (smsByLocale[locale as Locale] ?? smsEn).announcement(v);
+
+/** Email copy of an announcement for guardians who asked for email notices. */
+export function announcementEmail(locale: string, v: { school: string; guardian: string; title: string; body: string }) {
+  void locale; // si/ta texts fall back to English until translated
+  return {
+    subject: `${v.school}: ${v.title}`,
+    text: `Dear ${v.guardian},\n\n${v.title}\n\n${v.body}\n\nYou receive this because the school has your email address for notices.`,
+  };
+}

@@ -35,6 +35,9 @@
    Invitation and reset emails are sent by this cron job, so they arrive up to one interval later.
    Set `MAIL_TRANSPORT=smtp` and the `SMTP_*` variables (the host's mail server or a provider). With `MAIL_TRANSPORT=file`
    messages only land in `STORAGE_DIR/outbox`; schools without email can still use temporary passwords.
+   SMS (absence notices, announcements to guardians) is off by default (`SMS_TRANSPORT=none`). `SMS_TRANSPORT=http` posts
+   JSON to `SMS_HTTP_URL` (https only) with `SMS_HTTP_TOKEN`; the adapter is generic and must be checked against the chosen
+   Sri Lankan gateway's API before go-live (`apps/api/src/mail/sms.ts`). Every attempt is listed on *System status*.
 8. Verify: `https://school.example.lk/api/v1/health` returns `{"status":"ok"}`; sign in; check *System status*.
 
 ## Local (WAMP) notes

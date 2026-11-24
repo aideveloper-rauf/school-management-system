@@ -12,6 +12,7 @@ import {
   Alert,
   Badge,
   Button,
+  Checkbox,
   Drawer,
   EmptyState,
   Field,
@@ -38,6 +39,7 @@ interface Announcement {
   withdrawnAt: string | null;
   author: string | null;
   createdAt: string;
+  notifyGuardians?: boolean;
   isRead?: boolean;
   reads?: number;
 }
@@ -273,6 +275,8 @@ function Editor({ item, onClose, onDone }: { item: Announcement | null; onClose:
   const [gradeId, setGradeId] = useState(item?.audienceGrade ? String(item.audienceGrade.id) : '');
   const [classId, setClassId] = useState(item?.audienceClass ? String(item.audienceClass.id) : '');
   const [expiresOn, setExpiresOn] = useState(item?.expiresOn ?? '');
+  const [notifyGuardians, setNotifyGuardians] = useState(item?.notifyGuardians ?? false);
+  const reachesGuardians = audience !== 'role' || role === 'guardian';
   const grades = useResource<{ items: Grade[] }>(audience === 'grade' ? '/grades' : null);
   const { current } = useYears();
   const { sections } = useSections(audience === 'class' || audience === 'guardians_of_class' ? (current?.id ?? null) : null);
@@ -293,6 +297,7 @@ function Editor({ item, onClose, onDone }: { item: Announcement | null; onClose:
       audienceGradeId: audience === 'grade' && gradeId ? Number(gradeId) : null,
       audienceClassSectionId: (audience === 'class' || audience === 'guardians_of_class') && classId ? Number(classId) : null,
       expiresOn: expiresOn || null,
+      notifyGuardians: reachesGuardians && notifyGuardians,
     };
     const ok = await submit.run(async () => {
       if (item) {
@@ -404,6 +409,14 @@ function Editor({ item, onClose, onDone }: { item: Announcement | null; onClose:
           </Field>
         </div>
         <p className="text-[0.8125rem] text-fg-muted">{t(`announcements.audienceHelp.${audience}`)}</p>
+        {reachesGuardians && (
+          <Checkbox
+            label={t('announcements.notifyGuardians')}
+            description={t('announcements.notifyGuardiansHelp')}
+            checked={notifyGuardians}
+            onChange={(e) => setNotifyGuardians(e.target.checked)}
+          />
+        )}
       </div>
     </Drawer>
   );

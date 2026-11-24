@@ -3,7 +3,9 @@ import type { Db } from '../../db/client.js';
 import type { JobHandler } from '../../jobs/queue.js';
 import { enqueue } from '../../jobs/queue.js';
 import type { Mailer } from '../../mail/mailer.js';
-import { absenceEmail } from '../../mail/templates.js';
+import { absenceEmail, absenceSms } from '../../mail/templates.js';
+import { deliver } from '../../mail/notify.js';
+import { noSms, type SmsSender } from '../../mail/sms.js';
 
 /**
  * Guardian absence notices (roadmap C-10).
@@ -11,7 +13,7 @@ import { absenceEmail } from '../../mail/templates.js';
  * Marking a student absent queues one job per student per day (idempotency key), delayed so a quick
  * correction cancels it, and moved out of quiet hours (school time). When the job runs it re-checks
  * that the student is still absent and sends to verified guardians who opted in to email notices.
- * SMS goes through the notification adapters added in Phase 4.
+ * Each guardian gets email and/or SMS according to their preferences; every attempt is logged (masked address).
  */
 export const ABSENCE_NOTICE_JOB = 'attendance.absence_notice';
 const DELAY_MINUTES = 30;
@@ -47,7 +49,7 @@ export async function queueAbsenceNotice(db: Db, studentId: number, date: string
   );
 }
 
-export function absenceNoticeHandler(deps: { mailer: Mailer }): JobHandler {
+export function absenceNoticeHandler(deps: { mailer: Mailer; sms?: SmsSender }): JobHandler {
   return async (payload, { db }) => {
     const p = payload as { studentId?: unknown; date?: unknown };
     const studentId = Number(p?.studentId);
@@ -68,17 +70,29 @@ export function absenceNoticeHandler(deps: { mailer: Mailer }): JobHandler {
     const guardians = await db
       .selectFrom('student_guardians as sg')
       .innerJoin('guardian_profiles as g', 'g.id', 'sg.guardian_id')
-      .select(['g.full_name', 'g.email', 'g.preferred_locale'])
+      .select(['g.id', 'g.full_name', 'g.email', 'g.phone', 'g.notify_email', 'g.notify_sms', 'g.preferred_locale'])
       .where('sg.student_id', '=', studentId)
       .where('sg.verification_status', '=', 'verified')
-      .where('g.notify_email', '=', 1)
-      .where('g.email', 'is not', null)
       .execute();
     if (guardians.length === 0) return;
     const school = (await db.selectFrom('schools').select('name').executeTakeFirst())?.name ?? 'School';
+    const sender = { mailer: deps.mailer, sms: deps.sms ?? noSms() };
     for (const g of guardians) {
-      const tpl = absenceEmail(g.preferred_locale, { school, guardian: g.full_name, student: still.full_name, date });
-      await deps.mailer.send({ to: g.email!, subject: tpl.subject, text: tpl.text });
+      const v = { school, guardian: g.full_name, student: still.full_name, date };
+      const common = {
+        purpose: 'absence_notice',
+        recipientKind: 'guardian' as const,
+        recipientRef: g.id,
+        entityType: 'student',
+        entityRef: studentId,
+      };
+      if (g.notify_email && g.email) {
+        const tpl = absenceEmail(g.preferred_locale, v);
+        await deliver(db, sender, { ...common, channel: 'email', to: g.email, subject: tpl.subject, text: tpl.text });
+      }
+      if (g.notify_sms && g.phone) {
+        await deliver(db, sender, { ...common, channel: 'sms', to: g.phone, text: absenceSms(g.preferred_locale, v) });
+      }
     }
   };
 }
