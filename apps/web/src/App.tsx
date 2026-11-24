@@ -21,6 +21,10 @@ const AcademicPage = lazy(() => import('./pages/academic/AcademicPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const AuditPage = lazy(() => import('./pages/AuditPage'));
 const StatusPage = lazy(() => import('./pages/StatusPage'));
+const StudentsPage = lazy(() => import('./pages/students/StudentsPage'));
+const StaffPage = lazy(() => import('./pages/staff/StaffPage'));
+const GuardiansPage = lazy(() => import('./pages/guardians/GuardiansPage'));
+const ImportsPage = lazy(() => import('./pages/imports/ImportsPage'));
 
 /** Built screens by nav path; the rest show a "not available yet" placeholder. */
 const PAGES: Record<string, ComponentType> = {
@@ -29,6 +33,10 @@ const PAGES: Record<string, ComponentType> = {
   '/settings': SettingsPage,
   '/audit': AuditPage,
   '/status': StatusPage,
+  '/students': StudentsPage,
+  '/staff': StaffPage,
+  '/guardians': GuardiansPage,
+  '/imports': ImportsPage,
 };
 
 export function App() {

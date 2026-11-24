@@ -3,8 +3,11 @@ import {
   Activity,
   Award,
   BookOpenCheck,
+  Briefcase,
   CalendarClock,
   ClipboardCheck,
+  Contact,
+  FileUp,
   GraduationCap,
   LayoutDashboard,
   Megaphone,
@@ -55,7 +58,6 @@ export const NAV_GROUPS: NavGroup[] = [
         labelKey: 'nav.students',
         icon: GraduationCap,
         anyOf: ['students.read.scoped', 'students.read.all'],
-        soon: true,
       },
       {
         path: '/exams',
@@ -65,6 +67,14 @@ export const NAV_GROUPS: NavGroup[] = [
         soon: true,
       },
       { path: '/results', labelKey: 'nav.results', icon: Award, anyOf: ['results.read.own'], soon: true },
+    ],
+  },
+  {
+    labelKey: 'navGroups.people',
+    items: [
+      { path: '/staff', labelKey: 'nav.staff', icon: Briefcase, anyOf: ['staff.read'] },
+      { path: '/guardians', labelKey: 'nav.guardians', icon: Contact, anyOf: ['guardians.link.manage'] },
+      { path: '/imports', labelKey: 'nav.imports', icon: FileUp, anyOf: ['students.manage', 'staff.manage', 'guardians.link.manage'] },
     ],
   },
   {

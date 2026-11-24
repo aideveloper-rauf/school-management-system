@@ -5,6 +5,7 @@ import { z } from 'zod';
 import {
   GENDERS,
   GUARDIAN_RELATIONSHIPS,
+  IMPORT_COLUMNS,
   IMPORT_MAX_ROWS,
   importListQuerySchema,
   importUploadSchema,
@@ -57,15 +58,6 @@ class PreviewRollback extends Error {
     super('preview');
   }
 }
-
-export const IMPORT_COLUMNS: Record<ImportKind, { required: string[]; optional: string[] }> = {
-  students: {
-    required: ['admission_no', 'full_name', 'admitted_on'],
-    optional: ['name_with_initials', 'date_of_birth', 'gender', 'grade', 'class'],
-  },
-  staff: { required: ['staff_no', 'full_name'], optional: ['name_with_initials', 'designation', 'work_email', 'work_phone', 'joined_on'] },
-  guardians: { required: ['student_admission_no', 'full_name', 'relationship'], optional: ['phone', 'email', 'is_primary'] },
-};
 
 // Cell parsing ---------------------------------------------------------------
 /** Empty cells and absent optional columns both mean "no value". */

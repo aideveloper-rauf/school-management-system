@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useId, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Inbox, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { api } from '../lib/api';
@@ -24,7 +24,7 @@ import {
  * Forms hold string/boolean values and convert them to the API's types on submit; edits send
  * only changed fields (PATCH). The API validates everything again and is the source of truth.
  */
-export type FieldType = 'text' | 'number' | 'date' | 'time' | 'checkbox' | 'select';
+export type FieldType = 'text' | 'number' | 'date' | 'time' | 'checkbox' | 'select' | 'email' | 'tel' | 'textarea';
 
 export interface FieldDef {
   name: string;
@@ -52,7 +52,7 @@ export interface ColumnDef<T> {
   wide?: boolean;
 }
 
-type Values = Record<string, string | boolean>;
+export type Values = Record<string, string | boolean>;
 
 export function CrudSection<T extends { id: number }>({
   title,
@@ -195,17 +195,17 @@ export function CrudSection<T extends { id: number }>({
       />
 
       {editing !== null && (
-        <CrudDrawer
+        <FormDrawer
           title={editing === 'new' ? t('crud.addTitle', { noun }) : t('crud.editTitle', { noun })}
           fields={editing === 'new' ? fields : fields.filter((f) => !f.createOnly)}
           initial={editing === 'new' ? initialValues(fields) : toValues(editing)}
           path={editing === 'new' ? createPath : itemPath(editing.id)}
           mode={editing === 'new' ? 'create' : 'edit'}
-          noun={noun}
+          submitLabel={editing === 'new' ? t('crud.add', { noun }) : t('common.saveChanges')}
           onClose={() => setEditing(null)}
-          onDone={(msg) => {
+          onDone={() => {
             setEditing(null);
-            toast.success(msg);
+            toast.success(editing === 'new' ? t('crud.created', { noun }) : t('common.saved'));
             changed();
           }}
         />
@@ -239,7 +239,7 @@ export function CrudSection<T extends { id: number }>({
   );
 }
 
-function initialValues(fields: FieldDef[]): Values {
+export function initialValues(fields: FieldDef[]): Values {
   return Object.fromEntries(fields.map((f) => [f.name, f.initial ?? (f.type === 'checkbox' ? false : '')]));
 }
 
@@ -258,24 +258,38 @@ function toBody(fields: FieldDef[], values: Values, initial: Values, mode: 'crea
   return body;
 }
 
-function CrudDrawer({
+/**
+ * Drawer with a config-driven form. `create` sends every field (POST by default); `edit` sends only
+ * changed fields (PATCH by default). `onDone` receives the API response.
+ */
+export function FormDrawer({
   title,
+  description,
   fields,
   initial,
   path,
   mode,
-  noun,
+  method,
+  submitLabel,
+  extraBody,
+  intro,
   onClose,
   onDone,
 }: {
   title: string;
+  description?: string;
   fields: FieldDef[];
   initial: Values;
   path: string;
   mode: 'create' | 'edit';
-  noun: string;
+  method?: 'POST' | 'PATCH' | 'PUT';
+  submitLabel: string;
+  /** Merged into the request body (e.g. fixed ids). */
+  extraBody?: Record<string, unknown>;
+  /** Content above the fields (help text, warnings). */
+  intro?: ReactNode;
   onClose: () => void;
-  onDone: (message: string) => void;
+  onDone: (result: unknown) => void;
 }) {
   const { t } = useTranslation();
   const [values, setValues] = useState<Values>(initial);
@@ -283,13 +297,13 @@ function CrudDrawer({
   const set = (name: string, v: string | boolean) => setValues((cur) => ({ ...cur, [name]: v }));
   const dirty = fields.some((f) => values[f.name] !== initial[f.name]);
   const missing = fields.some((f) => f.required && f.type !== 'checkbox' && values[f.name] === '');
-  const formId = 'crud-form';
+  const formId = useId();
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    const body = toBody(fields, values, initial, mode);
-    const ok = await submit.run(() => api(path, { method: mode === 'create' ? 'POST' : 'PATCH', body }));
-    if (ok !== undefined) onDone(mode === 'create' ? t('crud.created', { noun }) : t('common.saved'));
+    const body = { ...toBody(fields, values, initial, mode), ...extraBody };
+    const res = await submit.run(async () => (await api(path, { method: method ?? (mode === 'create' ? 'POST' : 'PATCH'), body })) ?? null);
+    if (res !== undefined) onDone(res);
   }
 
   const text = fields.filter((f) => f.type !== 'checkbox');
@@ -299,17 +313,19 @@ function CrudDrawer({
     <Drawer
       open
       title={title}
+      description={description}
       onClose={onClose}
       footer={
         <>
           <Button onClick={onClose}>{t('common.cancel')}</Button>
           <Button type="submit" form={formId} variant="primary" busy={submit.busy} disabled={(mode === 'edit' && !dirty) || missing}>
-            {mode === 'create' ? t('crud.add', { noun }) : t('common.saveChanges')}
+            {submitLabel}
           </Button>
         </>
       }
     >
       <form id={formId} onSubmit={onSubmit} noValidate className="space-y-5">
+        {intro}
         {submit.error && <Alert>{submit.error}</Alert>}
         <div className="grid grid-cols-2 gap-x-4 gap-y-5">
           {text.map((f) => (
@@ -341,6 +357,17 @@ function CrudDrawer({
                         </option>
                       ))}
                     </Select>
+                  ) : f.type === 'textarea' ? (
+                    <textarea
+                      id={id}
+                      aria-describedby={d}
+                      aria-invalid={invalid || undefined}
+                      rows={3}
+                      maxLength={500}
+                      className="block w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-sm text-fg focus:border-brand-500 focus:ring-3 focus:ring-brand-100 focus:outline-none"
+                      value={String(values[f.name] ?? '')}
+                      onChange={(e) => set(f.name, e.target.value)}
+                    />
                   ) : (
                     <Input
                       id={id}

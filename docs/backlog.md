@@ -31,9 +31,9 @@ Detailed tasks, IDs, dependencies and exit gates for each item: [`roadmap.md`](r
 - [ ] Supply Sinhala and Tamil translations (owner: pilot school / translator)
 
 ## Phase 2 — Core operations
-- [ ] Staff and student records (minimal fields), enrollment history, CSV import (idempotent ImportJob)
-- [ ] Guardian profiles and verified `student_guardians` links; scope helpers (`assertCanAccessStudent`)
-- [ ] Teacher class/subject assignments
+- [x] Staff and student records (minimal fields), enrollment history, CSV import (idempotent ImportJob) — fields provisional until P0-6
+- [x] Guardian profiles and verified `student_guardians` links; scope helpers (`assertCanAccessStudent`)
+- [x] Teacher class/subject assignments
 - [ ] Attendance sessions/records, correction workflow with reasons, guardian notification jobs
 - [ ] Timetable with teacher/class/room collision checks
 - [ ] Announcements with audience targeting

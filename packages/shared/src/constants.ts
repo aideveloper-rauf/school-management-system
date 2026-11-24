@@ -33,6 +33,15 @@ export const VERIFICATION_METHODS = ['in_person', 'birth_certificate', 'school_r
 export type VerificationMethod = (typeof VERIFICATION_METHODS)[number];
 export const IMPORT_KINDS = ['students', 'staff', 'guardians'] as const;
 export type ImportKind = (typeof IMPORT_KINDS)[number];
+/** CSV columns per import kind (header names, case/space-insensitive). Shared so the web can offer templates. */
+export const IMPORT_COLUMNS: Record<ImportKind, { required: readonly string[]; optional: readonly string[] }> = {
+  students: {
+    required: ['admission_no', 'full_name', 'admitted_on'],
+    optional: ['name_with_initials', 'date_of_birth', 'gender', 'grade', 'class'],
+  },
+  staff: { required: ['staff_no', 'full_name'], optional: ['name_with_initials', 'designation', 'work_email', 'work_phone', 'joined_on'] },
+  guardians: { required: ['student_admission_no', 'full_name', 'relationship'], optional: ['phone', 'email', 'is_primary'] },
+};
 
 /**
  * Audit log categories → action prefixes. Shared so the API filter and the web filter agree.

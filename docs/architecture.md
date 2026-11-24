@@ -70,10 +70,11 @@ app.post('/things', { preHandler: requirePermission('things.manage') }, async (r
 });
 ```
 
-**Scope helpers** (to be added with the people/class modules) live next to their domain, e.g.
-`modules/people/scope.ts` with `assertCanAccessStudent(db, auth, studentId)` that checks: same installation
-(implicit), and one of — `students.read.all`; teacher assigned to the student's current class/subject;
-guardian with a verified `student_guardians` link; the student themself.
+**Scope helpers** live next to their domain: `modules/people/scope.ts` has `studentScope(db, auth)` (a WHERE clause for
+lists), `assertCanAccessStudent`, `canAccessClass` / `assertCanAccessClass` and `taughtSectionIds`. A student is in scope
+when one of these holds — `students.read.all`; `students.read.scoped` and the user's staff profile teaches
+(`teacher_assignments`) or is class teacher of a section the student is *currently* enrolled in; a guardian with a
+**verified** `student_guardians` link; the student themself. Out of scope → `NOT_FOUND`.
 
 ### Authentication & sessions (ADR-0004)
 
@@ -142,13 +143,16 @@ removes expired sessions and old login attempts.
 - `HashRouter` is used so the static build works on any host; switch to `BrowserRouter` once the `.htaccess`
   rewrite is confirmed on the target plan.
 
-## 5. Current schema (migrations 0001–0003)
+## 5. Current schema (migrations 0001–0005)
 
 - **0001 foundation:** `schools`, `users`, `user_roles`, `sessions`, `login_attempts`, `audit_events`, `academic_years`,
   `terms`, `jobs`, `app_meta`, plus Kysely's `schema_migrations` tables.
 - **0002 academic structure:** `grades`, `subjects` (optional `name_si`/`name_ta`), `grade_subjects`, `rooms`,
   `class_sections` (per year + grade, optional medium and home room), `period_definitions` (one bell schedule),
   `calendar_events` (holiday / term_break / exam / event, `is_school_day`).
+- **0004:** `user_tokens`, `users.must_change_password`.
+- **0005 people:** `staff_profiles`, `student_profiles`, `student_status_events`, `enrollments`, `guardian_profiles`,
+  `student_guardians`, `teacher_assignments`, `class_sections.class_teacher_id`, `import_jobs`.
 - **0003:** adds 0001's foreign keys. 0001 declared them inline (`.references()`), which **MySQL silently ignores**
   (MariaDB honours them, so 0003 skips existing keys). Always use `.addForeignKeyConstraint()`; ESLint rejects
   `.references()` in migrations and a schema test fails if any `*_id`/`*_by` column lacks a foreign key.
@@ -224,6 +228,24 @@ with field names only. Deletes return `204`. Request schemas live in `@sms/share
   install may pass `--public-key` after an out-of-band fingerprint check. `verify-release` checks signature, archive and
   extracted files; `upgrade-check` refuses a database newer than the release, stale/missing backups and old Node.
 - Guide: [upgrade.md](upgrade.md).
+
+### People (`modules/people/`, migration 0005)
+
+Field set is minimal and **provisional until the data policy (P0-6)** is signed off: no national ID, address, health,
+religion or ethnicity columns.
+
+| Resource | Endpoints | Permission / rules |
+|---|---|---|
+| Students | `GET /students?q&status&classSectionId&gradeId&academicYearId&unenrolled`, `GET /students/:id`, `POST`, `PATCH /students/:id` | Read: `students.read.all` or `.scoped` (+ scope). Write: `students.manage`. Detail view is audited (`student.viewed`); status history and guardians only for read.all/manage |
+| Leaving | `POST /students/:id/leave` `{status, effectiveOn, reason, note}`, `POST /students/:id/readmit` | Ends the open enrolment; reason code in audit, free-text note only in `student_status_events` |
+| Enrolment | `POST /students/:id/enrollments`, `PATCH /enrollments/:id`, `POST /enrollments/promote`, `GET /class-sections/:id/students` | One open enrolment per student (student row locked); moving closes the old one the day before (never after its year ends); start date inside the section's year |
+| Staff | `GET/POST /staff`, `GET/PATCH /staff/:id` | `staff.read` / `staff.manage`; optional 1:1 link to a user account (audited) |
+| Guardians | `GET/POST /guardians`, `GET/PATCH/DELETE /guardians/:id`; links `POST /students/:id/guardians`, `PATCH/DELETE …/:guardianId`, `POST …/:guardianId/verify`; queue `GET /guardian-links?status` | `guardians.link.manage` (registrar). Links start `pending`; only `verified` grants access; verification records who/when/method |
+| Assignments | `GET/POST /teacher-assignments`, `DELETE /teacher-assignments/:id`, `PUT /class-sections/:id/class-teacher`, `GET /me/teaching` | `academic.structure.read` / `.manage`; subject must be in the grade's subject list. These rows are the teacher's scope |
+| CSV import | `POST /imports` (preview), `POST /imports/:id/apply`, `GET /imports`, `GET /imports/:id` | Kind-specific permission. Preview runs the real import in a rolled-back transaction; apply re-sends the file (SHA-256 must match), refuses rows with errors and files already applied. CSV content is never stored; row errors hold line/column/message only |
+
+Web: Students (list + drawer with details, classes, guardians, history; promote a class), Staff (drawer with teaching
+assignments and class teacher), Guardians (verification queue + directory), Import data (template download, preview, apply).
 
 ## 6. Known gaps (tracked in backlog.md)
 
